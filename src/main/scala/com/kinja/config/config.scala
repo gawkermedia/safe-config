@@ -48,29 +48,33 @@ object config {
             List.empty
         }
 
-        class IdentReplacer(from: TermName, to: TermName) extends Transformer {
-          override def transform(tree : Tree) : Tree = tree match {
-            case Ident(`from`) ⇒ Ident(to)
-            case _ ⇒ super.transform(tree)
-          }
-        }
-
-        val anonymizer = new Transformer {
-          override def transform(tree : Tree) : Tree = tree match {
-            case Function(ValDef(mods, name, tpt, rhs) :: Nil, body) if configValues.exists(_._1 == name) ⇒
-              val anonName = freshTerm()
-              Function(List(ValDef(mods, anonName, tpt, rhs)), new IdentReplacer(name, anonName).transform(body))
-            case _ ⇒ super.transform(tree)
-          }
-        }
-
         val transformer = new Transformer {
+          import collection.mutable.Stack
+          val stack : Stack[Map[TermName, TermName]] = Stack(configValues.map {
+            case (key, tree) ⇒ key → tree.name
+          } toMap)
+
           override def transform(tree : Tree) : Tree = tree match {
-            case Ident(name) if configValues.exists(_._1 == name) ⇒
-              val anonName = configValues.find(_._1 == name).get._2.name
+            case Block(stmnts, last) ⇒
+              val (args, trees) = stmnts.foldLeft(stack.head -> List.empty[Tree]) {
+                case ((idents, block), t @ ValDef(_, name, _, _)) ⇒
+                  val args = idents - name
+                  stack.push(args)
+                  try (
+                    args → (super.transform(t) :: block)
+                  ) finally { stack.pop(); () }
+                case ((idents, block), t) ⇒
+                  idents → (super.transform(t) :: block)
+              }
+              stack.push(args)
+              try super.transform(tree) finally { stack.pop(); () }
+            case Function(valDefs, _) ⇒
+              val args = stack.head -- valDefs.map(_.name)
+              stack.push(args)
+              try super.transform(tree) finally { stack.pop(); () }
+            case Ident(TermName(name)) if stack.head.contains(TermName(name)) ⇒
+              val anonName = stack.head.get(TermName(name)).get
               Ident(anonName)
-            case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒
-              super.transform(tree)
             case _ ⇒ super.transform(tree)
           }
         }
@@ -108,7 +112,7 @@ object config {
           case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒ false
           case _          ⇒ true
         }
-        val finalConfigValues = transformer.transformTrees(anonymizer.transformTrees(configValues.map(_._2)))
+        val finalConfigValues = transformer.transformTrees(configValues.map(_._2))
 
         val newBody = root :: extractorClass :: (otherMembers ++ finalConfigValues ++ extractor)
 
