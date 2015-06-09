@@ -41,7 +41,6 @@ object Build extends Build {
         .setPreference(SpaceBeforeColon, true),
       wartremoverErrors ++= Seq(
         Wart.Any2StringAdd,  // Prevent accidental stringification.
-        Wart.AsInstanceOf,   // Prevent unsafe casts.
         Wart.FinalCaseClass, // Case classes should always be final.
         Wart.IsInstanceOf,   // Prevent type-casing.
         Wart.ListOps,        // List.head, etc. are unsafe.

@@ -3,7 +3,10 @@ package com.kinja.config
 import com.typesafe.config._
 
 @config(testConf)
-object MacroTest {
+object TestConfig {
+
+  val subConfig : BootupErrors[LiftedTypesafeConfig] = root.flatMap(_.getLiftedConfig("sub-config"))
+
   val levelOne = for {
     conf ← root
     levelOne ← conf.getInt("levelone")
@@ -13,5 +16,12 @@ object MacroTest {
     conf ← root
     levelOne ← conf.getInt("levelone")
   } yield levelOne
+
+  val somethingConfig = for {
+    conf ← subConfig
+    foo ← conf.getInt("foo")
+    bar ← conf.getString("bar")
+  } yield SomethingConfig(foo, bar)
 }
 
+final case class SomethingConfig(foo : Int, bar : String)

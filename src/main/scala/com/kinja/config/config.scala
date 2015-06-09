@@ -32,21 +32,32 @@ object config {
         val configApi = tq"com.kinja.config.ConfigApi"
         val newParents = configApi :: (impl.parents.filter(_ == tq"scala.AnyRef"))
 
-        val configValues = impl.body.collect {
-          case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty ⇒
-            val typ = c.typecheck(Block(List(root), rhs)).tpe
+        var thusFar: List[Tree] = List(root, q"""def nested(name : String) : com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = throw new Exception("")""")
+        val configValues = impl.body.flatMap {
+          case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE) ⇒
+            val typ = c.typecheck(Block(thusFar, rhs)).tpe
             val Modifiers(flags, pw, ann) = mods
-            name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs)
-          case ValDef(mods, name, tpt, rhs) ⇒ name → ValDef(mods, freshTerm(), tpt, rhs)
+            thusFar = thusFar :+ t
+            List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
+          case t @ ValDef(mods, name, tpt, rhs) if !mods.hasFlag(PRIVATE) ⇒
+            thusFar = thusFar :+ t
+            List(name → ValDef(mods, freshTerm(), tpt, rhs))
+          case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" ⇒ List.empty
+          case t ⇒ 
+            thusFar = thusFar :+ t
+            List.empty
         }
 
         val extractorName = freshType()
         val extractorClass = {
-          val classMembers = configValues.map(_._2).map {
-            case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) ⇒
-              val TypeRef(_, _, typ :: Nil) = tpt.tpe
-
-              ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree)
+          val classMembers = configValues.map(_._2).flatMap {
+            case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, args), rhs) ⇒
+              List(ValDef(Modifiers(NoFlags, pw, ann), name, args.head, EmptyTree))
+            case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) ⇒ tpt.tpe match {
+              case TypeRef(_, _, typ :: Nil) if !(typ <:< typeOf[LiftedTypesafeConfig]) ⇒
+                List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
+              case _ ⇒ List.empty
+            }
           }
           q"private final case class $extractorName(..$classMembers)"
         }
@@ -57,15 +68,20 @@ object config {
           	else
               q"${extractorName.toTermName}.apply _"
 
+          val applied = configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") {
+            case (acc, (_, valDef)) ⇒ q"$acc <*> ${valDef.name}"
+          }
+
           q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
-          (com.kinja.config.BootupErrors($constructor) <*> ${configValues.head._2.name} <*> ${configValues.tail.head._2.name})
+          ($applied)
             .fold(errs => throw new Exception("woah!"), a => a)""".children
         }
 
         val otherMembers = impl.body.filter {
-          case _ : ValDef ⇒ false
+          case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒ false
           case _          ⇒ true
         }
+        println(otherMembers)
 
         val newBody = root :: extractorClass :: (otherMembers ++ configValues.map(_._2) ++ extractor)
 
