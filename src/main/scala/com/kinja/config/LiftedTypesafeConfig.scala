@@ -22,9 +22,9 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
   def getBoolean(name : String) = lift(name, underlying.getBoolean)
   def getDouble(name : String) = lift(name, underlying.getDouble)
   def getObject(name : String) = lift(name, underlying.getObject)
-  def getConfig(name : String) = lift(name, underlying.getConfig)
+  def getConfig(name : String) = this.getRawConfig(name).map(c ⇒ LiftedTypesafeConfig(c, name))
   def getStringList(name : String) = lift(name, underlying.getStringList)
-  def getLiftedConfig(name : String) : BootupErrors[LiftedTypesafeConfig] = this.getConfig(name).map(c ⇒ LiftedTypesafeConfig(c, name))
+  def getRawConfig(name : String) = lift(name, underlying.getConfig)
 }
 
 object LiftedTypesafeConfig {

@@ -9,5 +9,5 @@ trait ConfigApi {
    * Creates a new, smaller config from the section available at $name.
    */
   protected def nested(name : String) : BootupErrors[LiftedTypesafeConfig] =
-    root.flatMap(_.getLiftedConfig(name))
+    root.flatMap(_.getConfig(name))
 }
