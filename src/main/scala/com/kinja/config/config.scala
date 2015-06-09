@@ -48,13 +48,40 @@ object config {
             List.empty
         }
 
+        class IdentReplacer(from: TermName, to: TermName) extends Transformer {
+          override def transform(tree : Tree) : Tree = tree match {
+            case Ident(`from`) ⇒ Ident(to)
+            case _ ⇒ super.transform(tree)
+          }
+        }
+
+        val anonymizer = new Transformer {
+          override def transform(tree : Tree) : Tree = tree match {
+            case Function(ValDef(mods, name, tpt, rhs) :: Nil, body) if configValues.exists(_._1 == name) ⇒
+              val anonName = freshTerm()
+              Function(List(ValDef(mods, anonName, tpt, rhs)), new IdentReplacer(name, anonName).transform(body))
+            case _ ⇒ super.transform(tree)
+          }
+        }
+
+        val transformer = new Transformer {
+          override def transform(tree : Tree) : Tree = tree match {
+            case Ident(name) if configValues.exists(_._1 == name) ⇒
+              val anonName = configValues.find(_._1 == name).get._2.name
+              Ident(anonName)
+            case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒
+              super.transform(tree)
+            case _ ⇒ super.transform(tree)
+          }
+        }
+
         val extractorName = freshType()
         val extractorClass = {
           val classMembers = configValues.map(_._2).flatMap {
             case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, args), rhs) ⇒
               List(ValDef(Modifiers(NoFlags, pw, ann), name, args.head, EmptyTree))
             case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) ⇒ tpt.tpe match {
-              case TypeRef(_, _, typ :: Nil) if !(typ <:< typeOf[LiftedTypesafeConfig]) ⇒
+              case TypeRef(_, _, typ :: Nil) ⇒
                 List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
               case _ ⇒ List.empty
             }
@@ -81,9 +108,9 @@ object config {
           case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒ false
           case _          ⇒ true
         }
-        println(otherMembers)
+        val finalConfigValues = transformer.transformTrees(anonymizer.transformTrees(configValues.map(_._2)))
 
-        val newBody = root :: extractorClass :: (otherMembers ++ configValues.map(_._2) ++ extractor)
+        val newBody = root :: extractorClass :: (otherMembers ++ finalConfigValues ++ extractor)
 
         ModuleDef(mods, name, Template(newParents, impl.self, newBody))
       case _ ⇒ c.abort(c.enclosingPosition, "Config must be an object.")

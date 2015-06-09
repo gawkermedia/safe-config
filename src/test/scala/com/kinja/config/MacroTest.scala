@@ -5,7 +5,7 @@ import com.typesafe.config._
 @config(testConf)
 object TestConfig {
 
-  val subConfig : BootupErrors[LiftedTypesafeConfig] = root.flatMap(_.getLiftedConfig("sub-config"))
+  val subConfig = nested("sub-config")
 
   val levelOne = for {
     conf ← root
