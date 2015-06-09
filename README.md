@@ -53,7 +53,7 @@ object Config {
       <*> $orig_dbConfig
       <*> $orig_languages
       <*> $orig_secret
-   ).fold(errs ⇒ errs => throw new BootupErrorsException(errs), a => a)
+   ).fold(errs ⇒ throw new BootupErrorsException(errs), a ⇒ a)
 }
 
 final case class DbConfig(readConnection : String, writeConnection : String)
