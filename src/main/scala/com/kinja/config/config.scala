@@ -2,7 +2,7 @@ package com.kinja.config
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.language.experimental.macros
-import scala.reflect.macros.{ blackbox, whitebox }
+import scala.reflect.macros.{ blackbox, whitebox, TypecheckException }
 
 import com.typesafe.config.{ Config ⇒ TypesafeConfig }
 
@@ -32,14 +32,27 @@ object config {
         val configApi = tq"com.kinja.config.ConfigApi"
         val newParents = configApi :: (impl.parents.filter(_ == tq"scala.AnyRef"))
 
+        // Previous definitions. Used for type checking.
+        // TODO: Maybe just typecheck the whole block at once?
         var thusFar: List[Tree] = List(root, q"""def nested(name : String) : com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = throw new Exception("")""")
         val configValues = impl.body.flatMap {
           case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE) ⇒
-            val typ = c.typecheck(Block(thusFar, rhs)).tpe
+            val typ = try {
+              c.typecheck(Block(thusFar, rhs)).tpe
+            } catch {
+              case e : TypecheckException ⇒ c.abort(e.pos.asInstanceOf[c.Position], e.getMessage)
+            }
             val Modifiers(flags, pw, ann) = mods
-            thusFar = thusFar :+ t
-            List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
-          case t @ ValDef(mods, name, tpt, rhs) if !mods.hasFlag(PRIVATE) ⇒
+            thusFar = thusFar :+ ValDef(mods, name, tq"$typ", rhs)
+
+            // Ignore pure values.
+            if (typ <:< typeOf[BootupErrors[_]])
+              List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
+            else
+              List.empty
+          case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs)
+              if !mods.hasFlag(PRIVATE) ⇒
+
             thusFar = thusFar :+ t
             List(name → ValDef(mods, freshTerm(), tpt, rhs))
           case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" ⇒ List.empty
