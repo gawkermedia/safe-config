@@ -41,13 +41,13 @@ object Config {
    private final case class $Extractor(a : DbConfig, b : List[String], c : String)
    private val dbConfig = getConfig("db")
 
-   private val $orig_dbConfig = for {
+   private val $orig_dbConfig : BootupErrors[DbConfig] = for {
       conf  ← dbConfig
       read  ← conf.getString("read")
       write ← conf.getString("write")
    } yield DbConfig(read, write)
-   private val $orig_languages = getStringList("application.languages")
-   private val $orig_secret = getString("application.secret")
+   private val $orig_languages : BootupErrors[List[String]] = getStringList("application.languages")
+   private val $orig_secret : BootupErrors[String] = getString("application.secret")
    
    val $Extractor(dbConfig, languages, secret) = (BootupErrors($Extractor.apply _ curried)
       <*> $orig_dbConfig
