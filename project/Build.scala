@@ -9,7 +9,7 @@ import wartremover._
 object Build extends Build {
 
   lazy val base: Project = Project(
-    "actually-type-safe-config",
+    "safe-config",
     file("."),
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
