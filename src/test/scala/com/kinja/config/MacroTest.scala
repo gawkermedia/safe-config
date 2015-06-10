@@ -5,16 +5,18 @@ import com.typesafe.config._
 @config(testConf)
 object TestConfig {
 
-  val subConfig = getConfig("sub-config")
+  private val subConfig = getConfig("sub-config")
 
   val levelOne = for {
     conf ← root
     levelOne ← conf.getInt("levelone")
   } yield levelOne
 
+  val bar : BootupErrors[String] = root.flatMap(_.getString("sub-config.bar"))
+
   val _levelOne = getInt("levelone")
 
-  val otherLevelOne = for {
+  val otherLevelOne : BootupErrors[Int] = for {
     conf ← root
     levelOne ← conf.getInt("levelone")
   } yield levelOne

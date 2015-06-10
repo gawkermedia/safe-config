@@ -26,15 +26,37 @@ object config {
       }
       case _ ⇒ c.abort(c.enclosingPosition, "Encountered unexpected tree.")
     }
+
+	 val bootupErrors = tq"com.kinja.config.BootupErrors"
+	 val liftedTypesafeConfig = tq"com.kinja.config.LiftedTypesafeConfig"
+	 val duration = tq"scala.concurrent.duration.Duration"
+
+	 // The interface of ConfigApi for type-checking.
+	 val configApiFuncs = List(
+		q"""val root : $bootupErrors[$liftedTypesafeConfig] = (throw new Exception("")) : $bootupErrors[$liftedTypesafeConfig]""",
+		q"""def getString(name : String) : $bootupErrors[String] = (throw new Exception("")) : $bootupErrors[String]""",
+		q"""def getInt(name : String) : $bootupErrors[Int] = (throw new Exception("")) : $bootupErrors[Int]""",
+		q"""def getLong(name : String) : $bootupErrors[Long] = (throw new Exception("")) : $bootupErrors[Long]""",
+		q"""def getBoolean(name : String) : $bootupErrors[Boolean] = (throw new Exception("")) : $bootupErrors[Boolean]""",
+		q"""def getDouble(name : String) : $bootupErrors[Double] = (throw new Exception("")) : $bootupErrors[Double]""",
+		q"""def getDuration(name : String) : $bootupErrors[$duration] = (throw new Exception("")) : $bootupErrors[$duration]""",
+		q"""def getObject(name : String) : $bootupErrors[com.typesafe.config.ConfigObject] =(throw new Exception("")) : $bootupErrors[com.typesafe.config.ConfigObject]""",
+		q"""def getConfig(name : String) : $bootupErrors[$liftedTypesafeConfig] = (throw new Exception("")) : $bootupErrors[$liftedTypesafeConfig]""",
+		q"""def getStringList(name : String) : $bootupErrors[List[String]] = (throw new Exception("")) : $bootupErrors[List[String]]""",
+		q"""def getRawConfig(name : String) : $bootupErrors[com.typesafe.config.Config] = (throw new Exception("")) : $bootupErrors[com.typesafe.config.Config]""")
+
+	 // The root element.
+    val root = q"""val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
+
     val output = annottees.head.tree match {
       case ModuleDef(mods, name, impl) ⇒
-        val root = q"""val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
         val configApi = tq"com.kinja.config.ConfigApi"
         val newParents = configApi :: (impl.parents.filter(_ == tq"scala.AnyRef"))
 
         // Previous definitions. Used for type checking.
-        // TODO: Maybe just typecheck the whole block at once?
-        var thusFar: List[Tree] = List(root, q"""def nested(name : String) : com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = throw new Exception("")""")
+        // TODO: Typecheck the whole block at once to allow for forward references.
+		  //       This will require some serious reworking of the implementation.
+        var thusFar: List[Tree] = configApiFuncs
         val configValues = impl.body.flatMap {
           case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE) ⇒
             val typ = try {
@@ -61,6 +83,7 @@ object config {
             List.empty
         }
 
+		  // Replaces references between config values with the private name.
         val transformer = new Transformer {
           import collection.mutable.Stack
           val stack : Stack[Map[TermName, TermName]] = Stack(configValues.map {
@@ -132,7 +155,7 @@ object config {
         ModuleDef(mods, name, Template(newParents, impl.self, newBody))
       case _ ⇒ c.abort(c.enclosingPosition, "Config must be an object.")
     }
-    println(output)
+    // println(output)
     c.Expr[Any](Block(output :: Nil, Literal(Constant(()))))
   }
 }
