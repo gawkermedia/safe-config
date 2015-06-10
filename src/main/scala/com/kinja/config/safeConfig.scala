@@ -7,17 +7,17 @@ import scala.reflect.macros.{ blackbox, whitebox, TypecheckException }
 import com.typesafe.config.{ Config ⇒ TypesafeConfig }
 
 @compileTimeOnly("Macro paradise must be enabled to expand macro annotations.")
-class config(underlying : TypesafeConfig) extends StaticAnnotation {
-  def macroTransform(annottees : Any*) : Any = macro config.impl
+class safeConfig(underlying : TypesafeConfig) extends StaticAnnotation {
+  def macroTransform(annottees : Any*) : Any = macro safeConfig.impl
 }
 
-object config {
+object safeConfig {
   def impl(c : whitebox.Context)(annottees : c.Expr[Any]*) : c.Expr[Any] = {
     import c.universe._
     import c.universe.Flag._
 
-    def freshTerm(): TermName = c.freshName(TermName(""))
-    def freshType(): TypeName = c.freshName(TypeName(""))
+    def freshTerm(): TermName = TermName(c.freshName("safe_config"))
+    def freshType(): TypeName = TypeName(c.freshName("safe_config"))
 
     val underlying : TermName = c.prefix.tree match {
       case q"new $_(..$params)" ⇒ params match {
@@ -115,34 +115,40 @@ object config {
           }
         }
 
-        val extractorName = freshType()
-        val extractorClass = {
-          val classMembers = configValues.map(_._2).flatMap {
-            case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, args), rhs) ⇒
-              List(ValDef(Modifiers(NoFlags, pw, ann), name, args.head, EmptyTree))
-            case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) ⇒ tpt.tpe match {
-              case TypeRef(_, _, typ :: Nil) ⇒
-                List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
-              case _ ⇒ List.empty
+		  // We can only sequence up to 22 values at once due to the Function22 limit.
+		  // TODO define custom extractors and constructors (use curried functions) to
+		  // get around the limit and still correctly sequence errors.
+		  val extractors = configValues.grouped(22).flatMap { configValues ⇒
+          val extractorName = freshType()
+          val extractorClass = {
+            val classMembers = configValues.map(_._2).flatMap {
+              case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, args), rhs) ⇒
+                List(ValDef(Modifiers(NoFlags, pw, ann), name, args.head, EmptyTree))
+              case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) ⇒ tpt.tpe match {
+                case TypeRef(_, _, typ :: Nil) ⇒
+                  List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
+                case _ ⇒ List.empty
+              }
             }
+            q"private final case class $extractorName(..$classMembers)"
           }
-          q"private final case class $extractorName(..$classMembers)"
-        }
-        val extractor = {
-          val constructor =
-            if (configValues.length > 1)
-              q"${extractorName.toTermName}.apply _ curried"
-          	else
-              q"${extractorName.toTermName}.apply _"
-
-          val applied = configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") {
-            case (acc, (_, valDef)) ⇒ q"$acc <*> ${valDef.name}"
+          val extractor = {
+            val constructor =
+              if (configValues.length > 1)
+                q"${extractorName.toTermName}.apply _ curried"
+            	else
+                q"${extractorName.toTermName}.apply _"
+  
+            val applied = configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") {
+              case (acc, (_, valDef)) ⇒ q"$acc <*> ${valDef.name}"
+            }
+  
+            extractorClass :: q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
+            ($applied)
+              .fold(errs => throw new Exception("woah!"), a => a)""".children
           }
-
-          q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
-          ($applied)
-            .fold(errs => throw new Exception("woah!"), a => a)""".children
-        }
+			 extractor
+		  }
 
         val otherMembers = impl.body.filter {
           case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒ false
@@ -150,7 +156,7 @@ object config {
         }
         val finalConfigValues = transformer.transformTrees(configValues.map(_._2))
 
-        val newBody = root :: extractorClass :: (otherMembers ++ finalConfigValues ++ extractor)
+        val newBody = root :: (otherMembers ++ finalConfigValues ++ extractors)
 
         ModuleDef(mods, name, Template(newParents, impl.self, newBody))
       case _ ⇒ c.abort(c.enclosingPosition, "Config must be an object.")
