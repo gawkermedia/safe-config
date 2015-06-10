@@ -128,7 +128,8 @@ object safeConfig {
           }
         }
 
-		  val extractors = {
+        // The maximum number of arguments to a class in Java is 255.
+		  val extractors = configValues.grouped(255).flatMap { configValues ⇒
           val extractorName = freshType()
           val extractorClass = {
             val classMembers = configValues.map(_._2).flatMap {

@@ -13,29 +13,45 @@ object TestConfig {
   val root1 = root.flatMap(_.getInt("int"))
   val root2 : BootupErrors[Int] = root.flatMap(_.getInt("int"))
 
-  // getString tests
-  val getString1 = getString("string")
-  val getString2 : BootupErrors[String] = getString("string")
-
-  // getInt tests
-  val getInt1 = getInt("int")
-  val getInt2 : BootupErrors[Int] = getInt("int")
-
-  // getLong tests
-  val getLong1 = getLong("long")
-  val getLong2 : BootupErrors[Long] = getLong("long")
-
   // getBoolean tests
   val getBoolean1 = getBoolean("bool")
   val getBoolean2 : BootupErrors[Boolean] = getBoolean("bool")
+
+  // getBooleanList tests
+  val getBooleanList1 = getBooleanList("bool-list")
+  val getBooleanList2 : BootupErrors[List[Boolean]] = getBooleanList("bool-list")
 
   // getDouble tests
   val getDouble1 = getDouble("double")
   val getDouble2 : BootupErrors[Double] = getDouble("double")
 
+  // getDoubleList tests
+  val getDoubleList1 = getDoubleList("double-list")
+  val getDoubleList2 : BootupErrors[List[Double]] = getDoubleList("double-list")
+
   // getDuration tests
   val getDuration1 = getDuration("duration")
   val getDuration2 : BootupErrors[Duration] = getDuration("duration")
+
+  // getDurationList tests
+  val getDurationList1 = getDurationList("duration-list")
+  val getDurationList2 : BootupErrors[List[Duration]] = getDurationList("duration-list")
+
+  // getInt tests
+  val getInt1 = getInt("int")
+  val getInt2 : BootupErrors[Int] = getInt("int")
+
+  // getIntList tests
+  val getIntList1 = getIntList("int-list")
+  val getIntList2 : BootupErrors[List[Int]] = getIntList("int-list")
+
+  // getString tests
+  val getString1 = getString("string")
+  val getString2 : BootupErrors[String] = getString("string")
+
+  // getLong tests
+  val getLong1 = getLong("long")
+  val getLong2 : BootupErrors[Long] = getLong("long")
 
   // getObject tests
   val getObject1 = getObject("sub-config")

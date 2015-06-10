@@ -30,6 +30,7 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[String]
    */
   def errors : Seq[String] = run.fold(a ⇒ a, _ ⇒ Nil)
 
+  // TODO this should only return None when the value is missing, not when it is the wrong type.
   /**
    * Ignore any errors in this BootupErrors and return None if there are any.
    * Useful for optionally selecting things from config files.
