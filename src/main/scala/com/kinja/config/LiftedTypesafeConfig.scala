@@ -16,9 +16,9 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
     BootupErrors(f(name))
   } catch {
     case _ : ConfigException.WrongType ⇒
-      BootupErrors.failed(s"Incorrect type for `$name`. Expected ${ev.toString}.")
+      BootupErrors.failed(ConfigError.WrongType(configAndName._2, name, ev.toString))
     case _ : ConfigException.Missing ⇒
-      BootupErrors.failed(s"Could not find key `$name` in configuration `${configAndName._2}`.")
+      BootupErrors.failed(ConfigError.MissingValue(configAndName._2, name))
   }
 
   /** The underlying TypesafeConfig. */
