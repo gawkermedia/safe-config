@@ -45,13 +45,13 @@ object TestConfig {
   val getIntList1 = getIntList("int-list")
   val getIntList2 : BootupErrors[List[Int]] = getIntList("int-list")
 
-  // getString tests
-  val getString1 = getString("string")
-  val getString2 : BootupErrors[String] = getString("string")
-
   // getLong tests
   val getLong1 = getLong("long")
   val getLong2 : BootupErrors[Long] = getLong("long")
+
+  // getLongList tests
+  val getLongList1 = getLongList("long-list")
+  val getLongList2 : BootupErrors[List[Long]] = getLongList("long-list")
 
   // getObject tests
   val getObject1 = getObject("sub-config")
@@ -60,6 +60,10 @@ object TestConfig {
   // getConfig tests
   val getConfig1 = getConfig("sub-config")
   val getConfig2 : BootupErrors[LiftedTypesafeConfig] = getConfig("sub-config")
+
+  // getString tests
+  val getString1 = getString("string")
+  val getString2 : BootupErrors[String] = getString("string")
 
   // getStringList tests
   val getStringList1 = getStringList("string-list")

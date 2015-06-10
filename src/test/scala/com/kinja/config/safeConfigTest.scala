@@ -42,4 +42,30 @@ class safeConfigTest extends FlatSpec with Matchers {
     TestConfig.getIntList1 should be(List(1, 2, 3, 4))
     TestConfig.getIntList2 should be(List(1, 2, 3, 4))
   }
+
+  it should "handle getLong" in {
+    TestConfig.getLong1 should be(2147483648l)
+    TestConfig.getLong2 should be(2147483648l)
+  }
+
+  it should "handle getLongList" in {
+    TestConfig.getLongList1 should be(List(2147483648l, 2147483649l, 2147483650l))
+    TestConfig.getLongList2 should be(List(2147483648l, 2147483649l, 2147483650l))
+  }
+
+  it should "handle getObject" in {
+  }
+
+  it should "handle getObjectList" in {
+  }
+
+  it should "handle getString" in {
+    TestConfig.getString1 should be("This is a string.")
+    TestConfig.getString2 should be("This is a string.")
+  }
+
+  it should "handle getStringList" in {
+    TestConfig.getStringList1 should be(List("a", "b", "c"))
+    TestConfig.getStringList2 should be(List("a", "b", "c"))
+  }
 }
