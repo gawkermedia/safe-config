@@ -5,12 +5,14 @@ import com.typesafe.config._
 @config(testConf)
 object TestConfig {
 
-  val subConfig = nested("sub-config")
+  val subConfig = getConfig("sub-config")
 
   val levelOne = for {
     conf ← root
     levelOne ← conf.getInt("levelone")
   } yield levelOne
+
+  val _levelOne = getInt("levelone")
 
   val otherLevelOne = for {
     conf ← root
