@@ -2,7 +2,7 @@ package com.kinja.config
 
 import com.typesafe.config._
 
-@config(testConf)
+@safeConfig(testConf)
 object TestConfig {
 
   private val subConfig = getConfig("sub-config")

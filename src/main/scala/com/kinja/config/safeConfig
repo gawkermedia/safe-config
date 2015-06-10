@@ -7,11 +7,11 @@ import scala.reflect.macros.{ blackbox, whitebox, TypecheckException }
 import com.typesafe.config.{ Config ⇒ TypesafeConfig }
 
 @compileTimeOnly("Macro paradise must be enabled to expand macro annotations.")
-class safeConfig(underlying : TypesafeConfig) extends StaticAnnotation {
-  def macroTransform(annottees : Any*) : Any = macro safeConfig.impl
+class config(underlying : TypesafeConfig) extends StaticAnnotation {
+  def macroTransform(annottees : Any*) : Any = macro config.impl
 }
 
-object safeConfig {
+object config {
   def impl(c : whitebox.Context)(annottees : c.Expr[Any]*) : c.Expr[Any] = {
     import c.universe._
     import c.universe.Flag._
