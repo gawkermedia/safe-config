@@ -29,21 +29,32 @@ object safeConfig {
 
 	 val bootupErrors = tq"com.kinja.config.BootupErrors"
 	 val liftedTypesafeConfig = tq"com.kinja.config.LiftedTypesafeConfig"
-	 val duration = tq"scala.concurrent.duration.Duration"
+
+    // Create a stub for a function in the ConfigApi interface.
+    def apiStub(name : String, typ : Tree) =
+      q"""def ${TermName(name)}(name : String) : $bootupErrors[$typ] = (throw new Exception("")) : $bootupErrors[$typ]"""
 
 	 // The interface of ConfigApi for type-checking.
-	 val configApiFuncs = List(
+	 val configApiStubs = List(
 		q"""val root : $bootupErrors[$liftedTypesafeConfig] = (throw new Exception("")) : $bootupErrors[$liftedTypesafeConfig]""",
-		q"""def getString(name : String) : $bootupErrors[String] = (throw new Exception("")) : $bootupErrors[String]""",
-		q"""def getInt(name : String) : $bootupErrors[Int] = (throw new Exception("")) : $bootupErrors[Int]""",
-		q"""def getLong(name : String) : $bootupErrors[Long] = (throw new Exception("")) : $bootupErrors[Long]""",
-		q"""def getBoolean(name : String) : $bootupErrors[Boolean] = (throw new Exception("")) : $bootupErrors[Boolean]""",
-		q"""def getDouble(name : String) : $bootupErrors[Double] = (throw new Exception("")) : $bootupErrors[Double]""",
-		q"""def getDuration(name : String) : $bootupErrors[$duration] = (throw new Exception("")) : $bootupErrors[$duration]""",
-		q"""def getObject(name : String) : $bootupErrors[com.typesafe.config.ConfigObject] =(throw new Exception("")) : $bootupErrors[com.typesafe.config.ConfigObject]""",
-		q"""def getConfig(name : String) : $bootupErrors[$liftedTypesafeConfig] = (throw new Exception("")) : $bootupErrors[$liftedTypesafeConfig]""",
-		q"""def getStringList(name : String) : $bootupErrors[List[String]] = (throw new Exception("")) : $bootupErrors[List[String]]""",
-		q"""def getRawConfig(name : String) : $bootupErrors[com.typesafe.config.Config] = (throw new Exception("")) : $bootupErrors[com.typesafe.config.Config]""")
+      // format: OFF
+      apiStub("getBoolean",      tq"Boolean"),
+      apiStub("getBooleanList",  tq"List[Boolean]"),
+      apiStub("getConfig",       tq"$liftedTypesafeConfig"),
+      apiStub("getDouble",       tq"Double"),
+      apiStub("getDoubleList",   tq"List[Double]"),
+      apiStub("getDuration",     tq"scala.concurrent.duration.Duration"),
+      apiStub("getDurationList", tq"List[scala.concurrent.duration.Duration]"),
+      apiStub("getInt",          tq"Int"),
+      apiStub("getIntList",      tq"List[Int]"),
+      apiStub("getLong",         tq"Long"),
+      apiStub("getLongList",     tq"List[Long]"),
+      apiStub("getObject",       tq"com.typesafe.config.ConfigObject"),
+      apiStub("getObjectList",   tq"List[com.typesafe.config.ConfigObject]"),
+      apiStub("getString",       tq"String"),
+      apiStub("getStringList",   tq"List[String]"),
+      apiStub("getRawConfig",    tq"com.typesafe.config.Config"))
+      // format: ON
 
 	 // The root element.
     val root = q"""val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
@@ -56,7 +67,7 @@ object safeConfig {
         // Previous definitions. Used for type checking.
         // TODO: Typecheck the whole block at once to allow for forward references.
 		  //       This will require some serious reworking of the implementation.
-        var thusFar: List[Tree] = configApiFuncs
+        var thusFar: List[Tree] = configApiStubs
         val configValues = impl.body.flatMap {
           case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE) ⇒
             val typ = try {
