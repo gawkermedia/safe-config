@@ -19,10 +19,10 @@ object safeConfig {
     def freshTerm(): TermName = TermName(c.freshName("safe_config"))
     def freshType(): TypeName = TypeName(c.freshName("safe_config"))
 
-    val underlying : TermName = c.prefix.tree match {
+    val underlying : Tree = c.prefix.tree match {
       case q"new $_(..$params)" ⇒ params match {
-        case Ident(name) :: tail ⇒ name.toTermName
-        case _                   ⇒ c.abort(c.enclosingPosition, "No underlying template given.")
+        case head :: Nil ⇒ head
+        case _           ⇒ c.abort(c.enclosingPosition, "No underlying template given.")
       }
       case _ ⇒ c.abort(c.enclosingPosition, "Encountered unexpected tree.")
     }
@@ -145,7 +145,7 @@ object safeConfig {
   
             extractorClass :: q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
             ($applied)
-              .fold(errs => throw new BootupConfigurationException(errs), a => a)""".children
+              .fold(errs => throw new com.kinja.config.BootupConfigurationException(errs), a => a)""".children
           }
 			 extractor
 		  }
