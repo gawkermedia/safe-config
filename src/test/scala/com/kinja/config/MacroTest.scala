@@ -91,4 +91,8 @@ object TestConfig {
   val somePureValue : Option[Int] = Some(8)
 }
 
+@safeConfig(testConf)
+object EmptyConfig {
+}
+
 final case class SomethingConfig(foo : Int, bar : String)

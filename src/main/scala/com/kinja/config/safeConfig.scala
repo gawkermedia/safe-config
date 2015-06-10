@@ -145,7 +145,7 @@ object safeConfig {
   
             extractorClass :: q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
             ($applied)
-              .fold(errs => throw new Exception("woah!"), a => a)""".children
+              .fold(errs => throw new BootupConfigurationException(errs), a => a)""".children
           }
 			 extractor
 		  }
