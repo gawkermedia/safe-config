@@ -43,7 +43,7 @@ object Build extends Build {
         Wart.Any2StringAdd,  // Prevent accidental stringification.
         Wart.FinalCaseClass, // Case classes should always be final.
         Wart.IsInstanceOf,   // Prevent type-casing.
-        Wart.Null,           // Null is bad, bad bad.
+        Wart.Null,           // Null is bad, bad, bad.
         Wart.Return          // Prevent use of `return` keyword.
       ),
       libraryDependencies ++= Seq(
