@@ -36,8 +36,10 @@ The example given above will expand to the following:
 import com.kinja.config.safeConfig
 import play.api.Play.configuration.{ underlying ⇒ playConf }
 
-@safeConfig(playConf)
-object Config {
+object Config extends com.kinja.config.ConfigApi {
+   import com.kinja.config._
+   val root = BootupErrors(LiftedTypesafeConfig(playConf))
+
    private final case class $Extractor(a : DbConfig, b : List[String], c : String)
    private val dbConfig = getConfig("db")
 
