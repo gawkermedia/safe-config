@@ -87,8 +87,9 @@ object safeConfig {
           case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs)
               if !mods.hasFlag(PRIVATE) ⇒
 
+            val Modifiers(flags, pw, ann) = mods
             thusFar = thusFar :+ t
-            List(name → ValDef(mods, freshTerm(), tpt, rhs))
+            List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tpt, rhs))
           case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" ⇒ List.empty
           case t ⇒ 
             thusFar = thusFar :+ t
