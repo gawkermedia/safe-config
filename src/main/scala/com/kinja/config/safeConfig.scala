@@ -19,6 +19,7 @@ object safeConfig {
     def freshTerm(): TermName = TermName(c.freshName("safe_config"))
     def freshType(): TypeName = TypeName(c.freshName("safe_config"))
 
+    // Get the argument passed to safeConfig.
     val underlying : Tree = c.prefix.tree match {
       case q"new $_(..$params)" ⇒ params match {
         case head :: Nil ⇒ head
@@ -126,10 +127,7 @@ object safeConfig {
           }
         }
 
-		  // We can only sequence up to 22 values at once due to the Function22 limit.
-		  // TODO define custom extractors and constructors (use curried functions) to
-		  // get around the limit and still correctly sequence errors.
-		  val extractors = configValues.grouped(22).flatMap { configValues ⇒
+		  val extractors = {
           val extractorName = freshType()
           val extractorClass = {
             val classMembers = configValues.map(_._2).flatMap {
@@ -141,22 +139,35 @@ object safeConfig {
                 case _ ⇒ List.empty
               }
             }
-            q"private final case class $extractorName(..$classMembers)"
+            val construct = classMembers.foldRight(q"new $extractorName(..${classMembers.map(_.name)})") {
+              case (valDef, acc) ⇒ q"($valDef ⇒ $acc)"
+            }
+            q"""private final class $extractorName(..$classMembers)
+                private object ${extractorName.toTermName} {
+                  def construct = $construct
+                }""".children
           }
           val extractor = {
             val constructor =
               if (configValues.length > 1)
-                q"${extractorName.toTermName}.apply _ curried"
+                q"${extractorName.toTermName}.construct"
             	else
-                q"${extractorName.toTermName}.apply _"
+                q"${extractorName.toTermName}.construct"
   
             val applied = configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") {
               case (acc, (_, valDef)) ⇒ q"$acc <*> ${valDef.name}"
             }
+
+            val extractorInstance = freshTerm()
   
-            extractorClass :: q"""val ${extractorName.toTermName}(..${configValues.map(_._1)}) =
-            ($applied)
-              .fold(errs => throw new com.kinja.config.BootupConfigurationException(errs), a => a)""".children
+            val bundled = q"""private val $extractorInstance = ($applied)
+              .fold(errs => throw new com.kinja.config.BootupConfigurationException(errs), a => a)"""
+
+            val accessors = configValues.map {
+              case (name, valDef) ⇒ q"val $name = $extractorInstance.${valDef.name}"
+            }
+
+            (extractorClass :+ bundled) ++ accessors
           }
 			 extractor
 		  }
@@ -172,7 +183,7 @@ object safeConfig {
         ModuleDef(mods, name, Template(newParents, impl.self, newBody))
       case _ ⇒ c.abort(c.enclosingPosition, "Config must be an object.")
     }
-    // println(output)
+    println(output)
     c.Expr[Any](Block(output :: Nil, Literal(Constant(()))))
   }
 }
