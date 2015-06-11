@@ -54,9 +54,20 @@ class safeConfigTest extends FlatSpec with Matchers {
   }
 
   it should "handle getObject" in {
+    TestConfig.getObject1.get("string").unwrapped should be("This is a string.")
+    TestConfig.getObject2.get("string").unwrapped should be("This is a string.")
+
+    TestConfig.getObject1.get("int").unwrapped should be(1)
+    TestConfig.getObject2.get("int").unwrapped should be(1)
   }
 
   it should "handle getObjectList" in {
+    val objects1 = TestConfig.getObjectList1
+    val objects2 = TestConfig.getObjectList2
+
+    objects1.map(_.get("a").unwrapped) should be(List(1, 4))
+    objects2.map(_.get("b").unwrapped) should be(List(2, 5))
+    objects1.map(_.get("c").unwrapped) should be(List(3, 6))
   }
 
   it should "handle getString" in {
@@ -67,5 +78,40 @@ class safeConfigTest extends FlatSpec with Matchers {
   it should "handle getStringList" in {
     TestConfig.getStringList1 should be(List("a", "b", "c"))
     TestConfig.getStringList2 should be(List("a", "b", "c"))
+  }
+
+  it should "handle getRawConfig" in {
+    TestConfig.getRawConfig1.getString("string") should be("This is a string.")
+    TestConfig.getRawConfig2.getString("string") should be("This is a string.")
+  }
+
+  it should "handle missing values" in {
+    val errorMessage = try {
+      @safeConfig(testConf)
+      object MissingConf {
+        val foo = getString("does-not-exist")
+        val bar = getInt("also-does-not-exist")
+      }
+      MissingConf
+      ""
+    } catch {
+      case e : BootupConfigurationException ⇒ e.getMessage
+    }
+    errorMessage should be("The following Bootup configuration errors were found: \n\tCould not find key `does-not-exist` in configuration `root`.\n\tCould not find key `also-does-not-exist` in configuration `root`.")
+  }
+
+  it should "handle wrong types" in {
+    val errorMessage = try {
+      @safeConfig(testConf)
+      object WrongTypeConf {
+        val foo = getInt("string")
+        val bar = getDuration("object-list")
+      }
+      WrongTypeConf
+      ""
+    } catch {
+      case e : BootupConfigurationException ⇒ e.getMessage
+    }
+    errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string`. Expected Int.\n\tIncorrect type for `object-list`. Expected Long.")
   }
 }

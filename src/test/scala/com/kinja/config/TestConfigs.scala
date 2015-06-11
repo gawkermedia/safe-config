@@ -57,6 +57,10 @@ object TestConfig {
   val getObject1 = getObject("sub-config")
   val getObject2 : BootupErrors[ConfigObject] = getObject("sub-config")
 
+  // getObjectList tests
+  val getObjectList1 = getObjectList("object-list")
+  val getObjectList2 : BootupErrors[List[ConfigObject]] = getObjectList("object-list")
+
   // getConfig tests
   val getConfig1 = getConfig("sub-config")
   val getConfig2 : BootupErrors[LiftedTypesafeConfig] = getConfig("sub-config")
@@ -78,7 +82,7 @@ object TestConfig {
     levelOne ← conf.getInt("levelone")
   } yield levelOne
 
-  val bar : BootupErrors[String] = root.flatMap(_.getString("sub-config.bar"))
+  val bar : BootupErrors[String] = root.flatMap(_.getString("sub-config.string"))
 
   val _levelOne = getInt("levelone")
 
@@ -91,8 +95,8 @@ object TestConfig {
 
   val somethingConfig : BootupErrors[SomethingConfig] = for {
     conf ← subConfig
-    foo ← conf.getInt("foo")
-    bar ← conf.getString("bar")
+    foo ← conf.getInt("int")
+    bar ← conf.getString("string")
   } yield SomethingConfig(foo, bar)
 
   val blockTest1 = {

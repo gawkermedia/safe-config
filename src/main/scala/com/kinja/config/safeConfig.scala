@@ -185,7 +185,7 @@ object safeConfig {
         ModuleDef(mods, name, Template(newParents, impl.self, newBody))
       case _ ⇒ c.abort(c.enclosingPosition, "Config must be an object.")
     }
-    println(output)
+    // println(output)
     c.Expr[Any](Block(output :: Nil, Literal(Constant(()))))
   }
 }
