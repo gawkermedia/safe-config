@@ -3,11 +3,15 @@ package com.kinja.config
 /**
  * The types of errors that a BootupErrors can catch
  */
-sealed trait ConfigError {
-  // The name of the configuration where the error was found
+sealed trait ConfigError extends Product with Serializable {
+  /**
+   * The name of the configuration where the error was found
+   */
   val configName : String
 
-  // Name of the value that was being accessed when the error was encountered
+  /**
+   * Name of the value that was being accessed when the error was encountered
+   */
   val valueName : String
 }
 
