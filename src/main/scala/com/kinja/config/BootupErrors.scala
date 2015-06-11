@@ -7,6 +7,7 @@ package com.kinja.config
 final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[String], A]) extends AnyVal {
   def map[B](f : A ⇒ B) : BootupErrors[B] = BootupErrors(this.run.right.map(f))
 
+  /** Sequentially apply another BootupErrors to this one, accumulating any errors therein. */
   def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B ⇒ C]) : BootupErrors[C] = BootupErrors {
     (this.run, that.run) match {
       case (Right(g), Right(k)) ⇒ Right(g(k))
@@ -18,6 +19,7 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[String]
 
   def flatten[B](implicit ev : A <:< BootupErrors[B]) : BootupErrors[B] = this.flatMap(a ⇒ a)
 
+  /** Bind on another BootupErrors. Unlike `<*>` this does not accumulate errors. */
   def flatMap[B](f : A ⇒ BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run.right.flatMap(f(_).run))
 
   def fold[B](err : Seq[String] ⇒ B, succ : A ⇒ B) : B = run.fold(err, succ)
@@ -28,12 +30,14 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[String]
    */
   def errors : Seq[String] = run.fold(a ⇒ a, _ ⇒ Nil)
 
-  // TODO this should only return None when the value is missing, not when it is the wrong type.
+  // TODO this should return None when the value is missing, Some when successful,
+  // and a failed BootupErrors in all other situations.
+  // def optional : BootupErrors[Option[A]]
+
   /**
-   * Ignore any errors in this BootupErrors and return None if there are any.
-   * Useful for optionally selecting things from config files.
+   * Returns None if this BootupErrors contains any errors, otherwise Some.
    */
-  def optional : BootupErrors[Option[A]] = BootupErrors(this.fold(_ ⇒ None, Some(_)))
+  def toOption : Option[A] = this.fold(_ ⇒ None, Some(_))
 }
 
 object BootupErrors {
