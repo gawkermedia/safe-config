@@ -20,6 +20,6 @@ object ConfigError {
   // The type expected did not match the actual type of the value
   final case class WrongType(configName : String, valueName : String, expectedType : String) extends ConfigError {
     override def toString =
-      s"Incorrect type for `$valueName` in configuration `$configName`. Expected $expectedType"
+      s"Incorrect type for `$valueName` in configuration `$configName`. Expected $expectedType."
   }
 }

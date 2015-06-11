@@ -112,6 +112,6 @@ class safeConfigTest extends FlatSpec with Matchers {
     } catch {
       case e : BootupConfigurationException ⇒ e.getMessage
     }
-    errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string`. Expected Int.\n\tIncorrect type for `object-list`. Expected Long.")
+    errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long.")
   }
 }
