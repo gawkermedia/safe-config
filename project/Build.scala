@@ -3,10 +3,34 @@ import sbt.Keys._
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform._
 import ScalariformKeys._
+import com.typesafe.sbt.pgp.PgpSettings.useGpg
 
 import wartremover._
 
 object Build extends Build {
+
+  lazy val pomStuff = {
+    <url>https://github.com/gawkermedia/safe-config</url>
+    <licenses>
+      <license>
+        <name>BSD 3-Clause</name>
+        <url>https://raw.githubusercontent.com/ChrisNeveu/TBox/master/LICENSE</url>
+      </license>
+    </licenses>
+    <scm>
+      <connection>git@github.com:gawkermedia/safe-config.git</connection>
+      <developerConnection>scm:git:git@github.com:gawkermedia/safe-config.git</developerConnection>
+      <url>git@github.com:gawkermedia/safe-config</url>
+    </scm>
+    <developers>
+      <developer>
+        <name>Chris Neveu</name>
+      </developer>
+      <developer>
+        <name>Pedro Rodriguez</name>
+      </developer>
+    </developers>
+  }
 
   lazy val base: Project = Project(
     "safe-config",
@@ -15,6 +39,8 @@ object Build extends Build {
       organization := "com.kinja",
       version      := "0.0.1-SNAPSHOT",
       scalaVersion := "2.11.6",
+		useGpg := true,
+      pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
         "-encoding", "UTF-8",    // Set correct encoding for Scaladoc.
