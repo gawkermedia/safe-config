@@ -48,7 +48,6 @@ object Build extends Build {
       ),
       libraryDependencies ++= Seq(
         "com.typesafe" % "config" % "1.2.1",
-        "org.scalaz" %% "scalaz-core" % "7.0.7",
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
         compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full),
 		  "org.scalatest" %% "scalatest" % "2.2.1" % "test"
