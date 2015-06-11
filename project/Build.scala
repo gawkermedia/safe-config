@@ -3,7 +3,6 @@ import sbt.Keys._
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform._
 import ScalariformKeys._
-import com.typesafe.sbt.pgp.PgpSettings.useGpg
 
 import wartremover._
 
@@ -39,7 +38,6 @@ object Build extends Build {
       organization := "com.kinja",
       version      := "0.0.1-SNAPSHOT",
       scalaVersion := "2.11.6",
-		useGpg := true,
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
