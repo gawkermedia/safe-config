@@ -2,10 +2,14 @@
 
 Safe Config provides a safe and convenient wrapper around Typesafe's Config library.
 
-## Usage
-Although most people will use Safe Config in a Play project, Safe Config can be used anywhere that Typesafe's Config is used. The following example will assume Play.
-
-To create your configuration object use the `safeConfig` macro.
+## Quick Start
+Add the following to your `build.sbt` file:
+```scala
+libraryDependencies ++= Seq(
+  "com.kinja" %% "safe-config" % "1.0.0",
+  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full))
+```
+Create your first config object:
 ```scala
 import com.kinja.config.safeConfig
 import play.api.Play.configuration.{ underlying ⇒ playConf }
@@ -27,7 +31,21 @@ object Config {
 
 final case class DbConfig(readConnection : String, writeConnection : String)
 ```
-To ensure your config is initialized as early as possible (and thus any errors thrown as early as possible) you should add a reference to your config object in Play's `onStart` function.
+```scala
+// In Global.scala
+override def onStart(app: Application): Unit = {
+  Config
+  ...
+}
+```
+
+## How to use
+The `safeConfig` annotation marks a configuration object. Within the configuration object all errors are handled automatically and accessors are created exposing the pure values. Additionally, configuration objects expose the [`ConfigApi`](http://gawkermedia.github.io/safe-config/doc/#com.kinja.config.ConfigApi) interface (select "Visibility: All").
+
+All config values in the configuration object are eagerly evaluated and if any are the wrong type or missing, an exception is thrown indicating the problems with reading the config file.
+![](http://gawkermedia.github.io/safe-config/img/BootupErrorsException.png)
+
+In order to catch these errors as soon as possible, you should reference your config objects during your application's startup.
 
 ## API Documentation
 
@@ -44,7 +62,11 @@ object Config extends com.kinja.config.ConfigApi {
    import com.kinja.config._
    val root = BootupErrors(LiftedTypesafeConfig(playConf))
 
-   private final case class $Extractor(a : DbConfig, b : List[String], c : String)
+   private final class $Extractor(a : DbConfig, b : List[String], c : String)
+   private object $Extractor {
+      def construct : DbConfig ⇒ List[String] ⇒ String ⇒ $Extractor =
+         a ⇒ b ⇒ c ⇒ new $Extractor(a, b, c)
+   }
    private val dbConfig = getConfig("db")
 
    private val $orig_dbConfig : BootupErrors[DbConfig] = for {
@@ -55,11 +77,15 @@ object Config extends com.kinja.config.ConfigApi {
    private val $orig_languages : BootupErrors[List[String]] = getStringList("application.languages")
    private val $orig_secret : BootupErrors[String] = getString("application.secret")
    
-   val $Extractor(dbConfig, languages, secret) = (BootupErrors($Extractor.apply _ curried)
+   private val $Extractor_instance = (BootupErrors($Extractor.apply _ curried)
       <*> $orig_dbConfig
       <*> $orig_languages
       <*> $orig_secret
    ).fold(errs ⇒ throw new BootupErrorsException(errs), a ⇒ a)
+   
+   val dbConfig = $Extractor_instance.a
+   val languages = $Extractor_instance.b
+   val secret = $Extractor_instance.b
 }
 
 final case class DbConfig(readConnection : String, writeConnection : String)
