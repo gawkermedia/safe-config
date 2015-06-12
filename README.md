@@ -77,7 +77,7 @@ object Config extends com.kinja.config.ConfigApi {
    private val $orig_languages : BootupErrors[List[String]] = getStringList("application.languages")
    private val $orig_secret : BootupErrors[String] = getString("application.secret")
    
-   private val $Extractor_instance = (BootupErrors($Extractor.apply _ curried)
+   private val $Extractor_instance = (BootupErrors($Extractor.construct)
       <*> $orig_dbConfig
       <*> $orig_languages
       <*> $orig_secret
