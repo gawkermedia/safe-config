@@ -4,6 +4,9 @@ import com.typesafe.config.{ Config, ConfigObject }
 
 import scala.concurrent.duration.Duration
 
+/**
+ * This trait contains the API exposed by objects annotated with `safeConfig`.
+ */
 trait ConfigApi {
 
   /** The full configuration as given to the `safeConfig` macro (but lifted). */

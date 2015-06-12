@@ -13,7 +13,7 @@ object Build extends Build {
     <licenses>
       <license>
         <name>BSD 3-Clause</name>
-        <url>https://raw.githubusercontent.com/ChrisNeveu/TBox/master/LICENSE</url>
+        <url>https://github.com/gawkermedia/safe-config/blob/master/LICENSE</url>
       </license>
     </licenses>
     <scm>
@@ -36,7 +36,7 @@ object Build extends Build {
     file("."),
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
-      version      := "0.0.1-SNAPSHOT",
+      version      := "1.0.0",
       scalaVersion := "2.11.6",
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
