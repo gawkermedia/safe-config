@@ -29,6 +29,10 @@ final case class DbConfig(readConnection : String, writeConnection : String)
 ```
 To ensure your config is initialized as early as possible (and thus any errors thrown as early as possible) you should add a reference to your config object in Play's `onStart` function.
 
+## API Documentation
+
+The full API documentation is available [here](http://gawkermedia.github.io/safe-config/doc/#package).
+
 ## How It Works
 
 The example given above will expand to the following:
