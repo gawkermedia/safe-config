@@ -39,13 +39,37 @@ override def onStart(app: Application): Unit = {
 }
 ```
 
-## How to use
+## How To Use
 The `safeConfig` annotation marks a configuration object. Within the configuration object all errors are handled automatically and accessors are created exposing the pure values. Additionally, configuration objects expose the [`ConfigApi`](http://gawkermedia.github.io/safe-config/doc/#com.kinja.config.ConfigApi) interface (select "Visibility: All").
 
 All config values in the configuration object are eagerly evaluated and if any are the wrong type or missing, an exception is thrown indicating the problems with reading the config file.
 ![](http://gawkermedia.github.io/safe-config/img/BootupErrorsException.png)
 
 In order to catch these errors as soon as possible, you should reference your config objects during your application's startup.
+
+## Use With Classes
+As of version 1.1.0, Safe Config can be used to annotate a class as well. This works well with Play 2.4's dependency injection. Instead of passing the underlying play config to the macro directly, pass the name of the identifier it is available at within the class object.
+
+```scala
+import com.kinja.config.safeConfig
+
+import play.api._, ApplicationLoader.Context
+
+@safeConfig("rawConfig")
+class Bootstrap(context: Context) extends BuiltInComponentsFromContext(context) {
+   private val rawConfig = configuration.underlying
+   
+   val dbConfig = for {
+      conf  ← dbConfig
+      read  ← conf.getString("read")
+      write ← conf.getString("write")
+   } yield DbConfig(read, write)
+
+   val languages = getStringList("application.languages")
+
+   val secret = getString("application.secret")
+}
+
 
 ## API Documentation
 
@@ -90,3 +114,9 @@ object Config extends com.kinja.config.ConfigApi {
 
 final case class DbConfig(readConnection : String, writeConnection : String)
 ```
+
+## Limitations
+
+Due to the way type-checking occurs within the macro, forward references are not allowed within the annotated object.
+
+Because of a [bug](https://github.com/scalamacros/paradise/issues/49) in Macro Paradise, annotation of objects nested within a class does not work.

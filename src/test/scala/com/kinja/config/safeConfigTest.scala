@@ -114,4 +114,24 @@ class safeConfigTest extends FlatSpec with Matchers {
     }
     errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long.")
   }
+
+  it should "handle classes" in {
+    val concreteConf1 = new DepInjTest1
+    val concreteConf2 = new DepInjTest2
+    val concreteConf3 = new DepInjTest3
+    concreteConf1.getBoolean1 should be(true)
+    concreteConf2.getBoolean1 should be(true)
+    concreteConf3.getBoolean1 should be(true)
+  }
+
+  it should "handle classes with arguments" in {
+    val concreteConf1 = new ClassArgTest1("bool")
+    val concreteConf2 = new ClassArgTest2(testConf)
+    concreteConf1.getBoolean1 should be(true)
+    concreteConf2.secret should be("This is a string.")
+  }
+
+  it should "handle objects with protected mixins" in {
+    ProtectedMemberTest.getBoolean1 should be(true)
+  }
 }

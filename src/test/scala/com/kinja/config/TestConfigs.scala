@@ -120,3 +120,36 @@ object EmptyConfig {
 }
 
 final case class SomethingConfig(foo : Int, bar : String)
+
+@safeConfig("injectedConfig")
+class DepInjTest1() extends DependencyInjection {
+  val getBoolean1 = getBoolean("bool")
+}
+
+@safeConfig("rawConfig")
+class DepInjTest2() extends DependencyInjection {
+  private val rawConfig = injectedConfig
+  val getBoolean1 = getBoolean("bool")
+}
+
+@safeConfig("rawConfig")
+class DepInjTest3() extends DependencyInjection {
+  private val rawConfig : com.typesafe.config.Config = injectedConfig
+  val getBoolean1 = getBoolean("bool")
+}
+
+@safeConfig(testConf)
+object ProtectedMemberTest extends ProtectedMember {
+  val getBoolean1 = getBoolean(someString)
+}
+
+@safeConfig(testConf)
+class ClassArgTest1(private val someString : String) {
+  val getBoolean1 = getBoolean(someString)
+}
+
+@safeConfig("rawConfig")
+class ClassArgTest2(private val rawConfig : Config) {
+
+  val secret = getString("string")
+}
