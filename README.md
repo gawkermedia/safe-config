@@ -69,7 +69,7 @@ class Bootstrap(context: Context) extends BuiltInComponentsFromContext(context) 
 
    val secret = getString("application.secret")
 }
-
+```
 
 ## API Documentation
 
