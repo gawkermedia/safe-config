@@ -16,10 +16,9 @@ import play.api.Play.configuration.{ underlying ⇒ playConf }
 
 @safeConfig(playConf)
 object Config {
-   private val dbConfig = getConfig("db")
    
    val dbConfig = for {
-      conf  ← dbConfig
+      conf  ← getConfig("db")
       read  ← conf.getString("read")
       write ← conf.getString("write")
    } yield DbConfig(read, write)
@@ -60,7 +59,7 @@ class Bootstrap(context: Context) extends BuiltInComponentsFromContext(context) 
    private val rawConfig = configuration.underlying
    
    val dbConfig = for {
-      conf  ← dbConfig
+      conf  ← getConfig("db")
       read  ← conf.getString("read")
       write ← conf.getString("write")
    } yield DbConfig(read, write)
@@ -69,6 +68,14 @@ class Bootstrap(context: Context) extends BuiltInComponentsFromContext(context) 
 
    val secret = getString("application.secret")
 }
+```
+
+## Applicative Style
+In addition to the normal `map` and `flatMap` methods which allow you to use `for` comprehensions in your configuration, Safe Config provides a `<*>` operator which can be used to write shorter code.
+```scala
+  val dbConfig = (BootupErrors((DbConfig.apply _).curried)
+    <*> conf.getString("db.read")
+    <*> conf.getString("db.write"))
 ```
 
 ## API Documentation
