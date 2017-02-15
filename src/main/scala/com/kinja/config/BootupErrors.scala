@@ -43,4 +43,12 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
 object BootupErrors {
   def apply[A](a : A) : BootupErrors[A] = BootupErrors(Right(a))
   def failed[A](err : ConfigError) : BootupErrors[A] = BootupErrors(Left(err :: Nil))
+
+  def sequence[A](as : List[BootupErrors[A]]) : BootupErrors[List[A]] =
+    as.foldRight(BootupErrors(List.empty[A])) {
+      case (a, acc) ⇒ for {
+        a_ ← a
+        acc_ ← acc
+      } yield a_ :: acc_
+    }
 }

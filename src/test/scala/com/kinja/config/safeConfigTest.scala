@@ -134,4 +134,8 @@ class safeConfigTest extends FlatSpec with Matchers {
   it should "handle objects with protected mixins" in {
     ProtectedMemberTest.getBoolean1 should be(true)
   }
+
+  it should "BootupErrors.sequence should work" in {
+    BootupErrors.sequence(List(BootupErrors(1), BootupErrors(2), BootupErrors(3))).toOption should be(Some(List(1, 2, 3)))
+  }
 }
