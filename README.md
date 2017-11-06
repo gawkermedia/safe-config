@@ -116,7 +116,7 @@ object Config extends com.kinja.config.ConfigApi {
    
    val dbConfig = $Extractor_instance.a
    val languages = $Extractor_instance.b
-   val secret = $Extractor_instance.b
+   val secret = $Extractor_instance.c
 }
 
 final case class DbConfig(readConnection : String, writeConnection : String)
