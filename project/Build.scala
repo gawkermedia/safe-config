@@ -37,7 +37,6 @@ object Build extends Build {
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
       version      := "1.1.1",
-      scalaVersion := "2.11.6",
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
@@ -73,7 +72,7 @@ object Build extends Build {
       libraryDependencies ++= Seq(
         "com.typesafe" % "config" % "1.2.1",
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-        compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full),
+        compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
 		  "org.scalatest" %% "scalatest" % "2.2.1" % "test"
       )
     )
