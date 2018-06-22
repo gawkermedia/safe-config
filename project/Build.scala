@@ -23,7 +23,7 @@ object Build extends Build {
     </scm>
     <developers>
       <developer>
-        <name>Chris Neveu</name>
+        <name>Claire Neveu</name>
       </developer>
       <developer>
         <name>Pedro Rodriguez</name>
@@ -37,7 +37,8 @@ object Build extends Build {
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
       version      := "1.1.2-SNAPSHOT",
-	  scalaVersion := "2.11.8",
+      scalaVersion := "2.11.8",
+      crossScalaVersions := Seq("2.11.8", "2.12.6"),
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
@@ -64,17 +65,16 @@ object Build extends Build {
         .setPreference(RewriteArrowSymbols, true)
         .setPreference(SpaceBeforeColon, true),
       wartremoverErrors ++= Seq(
-        Wart.Any2StringAdd,  // Prevent accidental stringification.
         Wart.FinalCaseClass, // Case classes should always be final.
         Wart.IsInstanceOf,   // Prevent type-casing.
         Wart.Null,           // Null is bad, bad, bad.
         Wart.Return          // Prevent use of `return` keyword.
       ),
       libraryDependencies ++= Seq(
-        "com.typesafe" % "config" % "1.2.1",
+        "com.typesafe" % "config" % "1.3.2",
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
         compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-		  "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+        "org.scalatest" %% "scalatest" % "3.0.5" % "test"
       )
     )
   )

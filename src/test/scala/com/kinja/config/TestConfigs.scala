@@ -100,9 +100,7 @@ object TestConfig {
   } yield SomethingConfig(foo, bar)
 
   val blockTest1 = {
-    val foo = levelOne
     val somethingConfig = 5
-    val bar = otherLevelOne
     levelOne.map(_ + somethingConfig)
   }
 
