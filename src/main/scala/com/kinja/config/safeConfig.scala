@@ -2,9 +2,7 @@ package com.kinja.config
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.language.experimental.macros
-import scala.reflect.macros.{ blackbox, whitebox, TypecheckException }
-
-import com.typesafe.config.{ Config ⇒ TypesafeConfig }
+import scala.reflect.macros.{ whitebox, TypecheckException }
 
 /**
  * Adding this annotation to a class or object enables the configuration DSL within.
@@ -35,9 +33,6 @@ object safeConfig {
       }
       case _ ⇒ c.abort(c.enclosingPosition, "Encountered unexpected tree.")
     }
-
-    val bootupErrors = tq"com.kinja.config.BootupErrors"
-    val liftedTypesafeConfig = tq"com.kinja.config.LiftedTypesafeConfig"
 
     // The root element.
     val root = q"""lazy val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
@@ -100,8 +95,7 @@ object safeConfig {
 
       // Replaces references between config values with the private name.
       val transformer = new Transformer {
-        import collection.mutable.Stack
-        val stack : Stack[Map[TermName, TermName]] = Stack(configValues.map {
+        var stack : List[Map[TermName, TermName]] = List(configValues.map {
           case (key, tree) ⇒ key → tree.name
         } toMap)
 
@@ -110,19 +104,19 @@ object safeConfig {
             val (args, trees) = stmnts.foldLeft(stack.head -> List.empty[Tree]) {
               case ((idents, block), t @ ValDef(_, name, _, _)) ⇒
                 val args = idents - name
-                stack.push(args)
+                stack = args +: stack
                 try (
                   args → (super.transform(t) :: block)
-                ) finally { stack.pop(); () }
+                ) finally { stack = stack.tail }
               case ((idents, block), t) ⇒
                 idents → (super.transform(t) :: block)
             }
-            stack.push(args)
-            try super.transform(tree) finally { stack.pop(); () }
+            stack = args +: stack
+            try super.transform(tree) finally { stack = stack.tail }
           case Function(valDefs, _) ⇒
             val args = stack.head -- valDefs.map(_.name)
-            stack.push(args)
-            try super.transform(tree) finally { stack.pop(); () }
+            stack = args +: stack
+            try super.transform(tree) finally { stack = stack.tail }
           case Ident(TermName(name)) if stack.head.contains(TermName(name)) ⇒
             val anonName = stack.head.get(TermName(name)).get
             Ident(anonName)
