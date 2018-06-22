@@ -36,7 +36,7 @@ object Build extends Build {
     file("."),
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
-      version      := "1.1.2-SNAPSHOT",
+      version      := "1.1.1",
       scalaVersion := "2.11.8",
       crossScalaVersions := Seq("2.11.8", "2.12.6"),
       pomExtra := pomStuff,
