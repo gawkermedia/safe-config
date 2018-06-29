@@ -37,8 +37,8 @@ object Build extends Build {
     settings = Defaults.defaultSettings ++ scalariformSettings ++ wartremoverSettings ++ Seq(
       organization := "com.kinja",
       version      := "1.1.2-SNAPSHOT",
-      scalaVersion := "2.11.8",
-      crossScalaVersions := Seq("2.11.8", "2.12.6"),
+      scalaVersion := "2.12.6",
+      crossScalaVersions := Seq("2.12.6", "2.11.8"),
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
