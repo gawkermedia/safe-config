@@ -38,7 +38,7 @@ object Build extends Build {
       organization := "com.kinja",
       version      := "1.1.2-SNAPSHOT",
       scalaVersion := "2.12.6",
-      crossScalaVersions := Seq("2.12.6", "2.11.8"),
+      crossScalaVersions := Seq("2.12.6", "2.11.12"),
       pomExtra := pomStuff,
       scalacOptions ++= Seq(
         "-deprecation",          // Show details of deprecation warnings.
