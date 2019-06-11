@@ -20,16 +20,16 @@ object safeConfig {
     import c.universe._
     import c.universe.Flag._
 
-    def freshTerm(): TermName = TermName(c.freshName("safe_config"))
-    def freshType(): TypeName = TypeName(c.freshName("safe_config"))
+    def freshTerm() : TermName = TermName(c.freshName("safe_config"))
+    def freshType() : TypeName = TypeName(c.freshName("safe_config"))
 
     // Get the argument passed to safeConfig.
     @SuppressWarnings(Array("org.brianmckenna.wartremover.warts.IsInstanceOf"))
     val underlying : Tree = c.prefix.tree match {
       case q"new $_(..$params)" ⇒ params match {
-        case Literal(Constant(i: String)) :: Nil ⇒ Ident(TermName(i))
-        case head :: Nil ⇒ head
-        case _           ⇒ c.abort(c.enclosingPosition, "No underlying configuration given.")
+        case Literal(Constant(i : String)) :: Nil ⇒ Ident(TermName(i))
+        case head :: Nil                          ⇒ head
+        case _                                    ⇒ c.abort(c.enclosingPosition, "No underlying configuration given.")
       }
       case _ ⇒ c.abort(c.enclosingPosition, "Encountered unexpected tree.")
     }
@@ -37,7 +37,7 @@ object safeConfig {
     // The root element.
     val root = q"""lazy val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
 
-    def modBody(impl : Template): Template = {
+    def modBody(impl : Template) : Template = {
       val configApi = tq"com.kinja.config.ConfigApi"
       val newParents = impl.parents.filter {
         case Select(Ident(TermName("scala")), TypeName("AnyRef")) ⇒ false
@@ -46,21 +46,21 @@ object safeConfig {
 
       // Put members of mixins like ConfigApi into scope.
       val context = c.typecheck(q"""(throw new java.lang.Exception("")) : Object with ..$newParents""")
-      val dummyMembers = context.tpe.members.filter(member =>
-         member.name.decodedName.toString.trim != "wait"
+      val dummyMembers = context.tpe.members.filter(member ⇒
+        member.name.decodedName.toString.trim != "wait"
       ).map {
-        case m: MethodSymbol =>
-          val params = m.paramLists.headOption.toList.flatMap(_.map(p => q"""val ${p.name.toTermName} : ${p.typeSignature}"""))
+        case m : MethodSymbol ⇒
+          val params = m.paramLists.headOption.toList.flatMap(_.map(p ⇒ q"""val ${p.name.toTermName} : ${p.typeSignature}"""))
           q"""def ${m.name.toTermName}(..$params) : ${m.returnType} = (throw new java.lang.Exception("")) : ${m.returnType}"""
-        case t: TermSymbol => q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
+        case t : TermSymbol ⇒ q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
       }
 
       // Previous definitions. Used for type checking.
       // TODO: Typecheck the whole block at once to allow for forward references.
       //       This will require some serious reworking of the implementation.
-      var thusFar: List[Tree] = dummyMembers.toList
+      var thusFar : List[Tree] = dummyMembers.toList
       val configValues = impl.body.flatMap {
-        case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE)  ⇒
+        case t @ ValDef(mods, name, tpt, rhs) if tpt.isEmpty && !mods.hasFlag(PRIVATE) ⇒
           val typ = try {
             c.typecheck(Block(thusFar, rhs)).tpe
           } catch {
@@ -74,8 +74,7 @@ object safeConfig {
             List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
           else
             List.empty
-        case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs)
-            if !mods.hasFlag(PRIVATE) ⇒
+        case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs) if !mods.hasFlag(PRIVATE) ⇒
 
           val Modifiers(flags, pw, ann) = mods
           thusFar = thusFar :+ t
@@ -88,7 +87,7 @@ object safeConfig {
 
           thusFar = thusFar :+ ValDef(Modifiers(flags, pw, ann), name, tpt, rhs)
           List.empty
-        case t ⇒ 
+        case t ⇒
           thusFar = thusFar :+ t
           List.empty
       }
@@ -97,7 +96,7 @@ object safeConfig {
       val transformer = new Transformer {
         var stack : List[Map[TermName, TermName]] = List(configValues.map {
           case (key, tree) ⇒ key → tree.name
-        } toMap)
+        }.toMap)
 
         override def transform(tree : Tree) : Tree = tree match {
           case Block(stmnts, last) ⇒
@@ -107,7 +106,7 @@ object safeConfig {
                 stack = args +: stack
                 try (
                   args → (super.transform(t) :: block)
-                ) finally { stack = stack.tail }
+                  ) finally { stack = stack.tail }
               case ((idents, block), t) ⇒
                 idents → (super.transform(t) :: block)
             }
@@ -149,7 +148,7 @@ object safeConfig {
           val constructor =
             if (configValues.length > 1)
               q"${extractorName.toTermName}.construct"
-             else
+            else
               q"${extractorName.toTermName}.construct"
 
           val applied = configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") {
@@ -172,7 +171,7 @@ object safeConfig {
 
       val otherMembers = impl.body.filter {
         case ValDef(_, name, _, _) if configValues.exists(_._1 == name) ⇒ false
-        case _          ⇒ true
+        case _ ⇒ true
       }
       val finalConfigValues = transformer.transformTrees(configValues.map(_._2))
 
