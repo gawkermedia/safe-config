@@ -62,7 +62,6 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(AlignSingleLineCaseStatements, true)
   .setPreference(DoubleIndentConstructorArguments, true)
   .setPreference(DanglingCloseParenthesis, Preserve)
-  .setPreference(RewriteArrowSymbols, true)
   .setPreference(SpaceBeforeColon, true)
 
 wartremoverErrors ++= Warts.allBut(

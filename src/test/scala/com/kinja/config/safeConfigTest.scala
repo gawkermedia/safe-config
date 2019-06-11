@@ -95,7 +95,7 @@ class safeConfigTest extends FlatSpec with Matchers {
       MissingConf
       ""
     } catch {
-      case e : BootupConfigurationException ⇒ e.getMessage
+      case e : BootupConfigurationException => e.getMessage
     }
     errorMessage should be("The following Bootup configuration errors were found: \n\tCould not find key `does-not-exist` in configuration `root`.\n\tCould not find key `also-does-not-exist` in configuration `root`.")
   }
@@ -110,7 +110,7 @@ class safeConfigTest extends FlatSpec with Matchers {
       WrongTypeConf
       ""
     } catch {
-      case e : BootupConfigurationException ⇒ e.getMessage
+      case e : BootupConfigurationException => e.getMessage
     }
     errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long.")
   }

@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
 Create your first config object:
 ```scala
 import com.kinja.config.safeConfig
-import play.api.Play.configuration.{ underlying ⇒ playConf }
+import play.api.Play.configuration.{ underlying => playConf }
 
 @safeConfig(playConf)
 object Config {
@@ -87,7 +87,7 @@ The full API documentation is available [here](http://gawkermedia.github.io/safe
 The example given above will expand to the following:
 ```scala
 import com.kinja.config.safeConfig
-import play.api.Play.configuration.{ underlying ⇒ playConf }
+import play.api.Play.configuration.{ underlying => playConf }
 
 object Config extends com.kinja.config.ConfigApi {
    import com.kinja.config._
@@ -95,8 +95,8 @@ object Config extends com.kinja.config.ConfigApi {
 
    private final class $Extractor(a : DbConfig, b : List[String], c : String)
    private object $Extractor {
-      def construct : DbConfig ⇒ List[String] ⇒ String ⇒ $Extractor =
-         a ⇒ b ⇒ c ⇒ new $Extractor(a, b, c)
+      def construct : DbConfig => List[String] => String => $Extractor =
+         a => b => c => new $Extractor(a, b, c)
    }
    private val dbConfig = getConfig("db")
 
@@ -112,7 +112,7 @@ object Config extends com.kinja.config.ConfigApi {
       <*> $orig_dbConfig
       <*> $orig_languages
       <*> $orig_secret
-   ).fold(errs ⇒ throw new BootupErrorsException(errs), a ⇒ a)
+   ).fold(errs => throw new BootupErrorsException(errs), a => a)
    
    val dbConfig = $Extractor_instance.a
    val languages = $Extractor_instance.b
