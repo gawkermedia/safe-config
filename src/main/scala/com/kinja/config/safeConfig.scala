@@ -180,8 +180,8 @@ object safeConfig {
             case (name, valDef) =>
               val tpeOpt : Option[Tree] = valDef.tpt match {
                 case AppliedTypeTree(tpt, args) => args.headOption
-                case tpe =>
-                  tpe.tpe match {
+                case tree =>
+                  tree.tpe match {
                     case TypeRef(_, _, typ :: Nil) => Some(tq"$typ")
                     case _                         => None
                   }
