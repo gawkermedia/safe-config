@@ -71,14 +71,14 @@ object safeConfig {
 
           // Ignore pure values.
           if (typ <:< typeOf[BootupErrors[_]])
-            List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
+            List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
           else
             List.empty
         case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs) if !mods.hasFlag(PRIVATE) =>
 
           val Modifiers(flags, pw, ann) = mods
           thusFar = thusFar :+ t
-          List(name → ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tpt, rhs))
+          List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tpt, rhs))
         case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" => List.empty
         case t @ ValDef(mods, name, tpt, rhs) if mods.hasFlag(Flag.PARAMACCESSOR) =>
 
@@ -95,7 +95,7 @@ object safeConfig {
       // Replaces references between config values with the private name.
       val transformer = new Transformer {
         var stack : List[Map[TermName, TermName]] = List(configValues.map {
-          case (key, tree) => key → tree.name
+          case (key, tree) => key -> tree.name
         }.toMap)
 
         override def transform(tree : Tree) : Tree = tree match {
@@ -105,10 +105,10 @@ object safeConfig {
                 val args = idents - name
                 stack = args +: stack
                 try (
-                  args → (super.transform(t) :: block)
+                  args -> (super.transform(t) :: block)
                   ) finally { stack = stack.tail }
               case ((idents, block), t) =>
-                idents → (super.transform(t) :: block)
+                idents -> (super.transform(t) :: block)
             }
             stack = args +: stack
             try super.transform(tree) finally { stack = stack.tail }
