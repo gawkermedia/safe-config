@@ -18,9 +18,9 @@ import play.api.Play.configuration.{ underlying => playConf }
 object Config {
    
    val dbConfig = for {
-      conf  ← getConfig("db")
-      read  ← conf.getString("read")
-      write ← conf.getString("write")
+      conf  <- getConfig("db")
+      read  <- conf.getString("read")
+      write <- conf.getString("write")
    } yield DbConfig(read, write)
 
    val languages = getStringList("application.languages")
@@ -59,9 +59,9 @@ class Bootstrap(context: Context) extends BuiltInComponentsFromContext(context) 
    private val rawConfig = configuration.underlying
    
    val dbConfig = for {
-      conf  ← getConfig("db")
-      read  ← conf.getString("read")
-      write ← conf.getString("write")
+      conf  <- getConfig("db")
+      read  <- conf.getString("read")
+      write <- conf.getString("write")
    } yield DbConfig(read, write)
 
    val languages = getStringList("application.languages")
@@ -101,9 +101,9 @@ object Config extends com.kinja.config.ConfigApi {
    private val dbConfig = getConfig("db")
 
    private val $orig_dbConfig : BootupErrors[DbConfig] = for {
-      conf  ← dbConfig
-      read  ← conf.getString("read")
-      write ← conf.getString("write")
+      conf  <- dbConfig
+      read  <- conf.getString("read")
+      write <- conf.getString("write")
    } yield DbConfig(read, write)
    private val $orig_languages : BootupErrors[List[String]] = getStringList("application.languages")
    private val $orig_secret : BootupErrors[String] = getString("application.secret")

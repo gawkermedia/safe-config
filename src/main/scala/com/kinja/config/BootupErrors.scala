@@ -47,8 +47,8 @@ object BootupErrors {
   def sequence[A](as : List[BootupErrors[A]]) : BootupErrors[List[A]] =
     as.foldRight(BootupErrors(List.empty[A])) {
       case (a, acc) => for {
-        a_ ← a
-        acc_ ← acc
+        a_ <- a
+        acc_ <- acc
       } yield a_ :: acc_
     }
 }
