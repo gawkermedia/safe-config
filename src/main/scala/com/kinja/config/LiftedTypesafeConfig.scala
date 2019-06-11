@@ -70,6 +70,7 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
   def getObject(name : String) : BootupErrors[ConfigObject] = lift(name, underlying.getObject)
 
   /** Retrieves the value found at the given name as a ConfigObject. */
+  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
   def getObjectList(name : String) : BootupErrors[List[ConfigObject]] =
     lift(name, underlying.getObjectList).map(_.asScala.toList)
 
@@ -78,7 +79,7 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
 
   /** Retrieves the value found at the given name as a List of Strings. */
   def getStringList(name : String) : BootupErrors[List[String]] =
-    lift(name, underlying.getStringList).map(_.asScala.toList)
+    lift[java.util.List[String]](name, underlying.getStringList).map(_.asScala.toList)
 
   /**
    * As `getConfig` but this returns the underyling TypesafeConfig.

@@ -16,6 +16,12 @@ class safeConfig(underlying : Any) extends StaticAnnotation {
 }
 
 object safeConfig {
+
+  @SuppressWarnings(Array(
+    "org.wartremover.warts.Any",
+    "org.wartremover.warts.ToString",
+    "org.wartremover.warts.Var"
+  ))
   def impl(c : whitebox.Context)(annottees : c.Expr[Any]*) : c.Expr[Any] = {
     import c.universe._
     import c.universe.Flag._
@@ -24,7 +30,7 @@ object safeConfig {
     def freshType() : TypeName = TypeName(c.freshName("safe_config"))
 
     // Get the argument passed to safeConfig.
-    @SuppressWarnings(Array("org.brianmckenna.wartremover.warts.IsInstanceOf"))
+    @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
     val underlying : Tree = c.prefix.tree match {
       case q"new $_(..$params)" => params match {
         case Literal(Constant(i : String)) :: Nil => Ident(TermName(i))
@@ -35,7 +41,7 @@ object safeConfig {
     }
 
     // The root element.
-    val root = q"""lazy val root = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
+    val root = q"""lazy val root: com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
 
     def modBody(impl : Template) : Template = {
       val configApi = tq"com.kinja.config.ConfigApi"
@@ -55,6 +61,12 @@ object safeConfig {
         case t : TermSymbol => q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
       }
 
+      @SuppressWarnings(Array(
+        "org.wartremover.warts.NonUnitStatements",
+        "org.wartremover.warts.Nothing"
+      ))
+      def isBootupErrors(typ : Type) : Boolean = typ <:< typeOf[BootupErrors[_]]
+
       // Previous definitions. Used for type checking.
       // TODO: Typecheck the whole block at once to allow for forward references.
       //       This will require some serious reworking of the implementation.
@@ -70,26 +82,26 @@ object safeConfig {
           thusFar = thusFar :+ ValDef(mods, name, tq"$typ", rhs)
 
           // Ignore pure values.
-          if (typ <:< typeOf[BootupErrors[_]])
+          if (isBootupErrors(typ))
             List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
           else
-            List.empty
+            List.empty[(TermName, ValDef)]
         case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs) if !mods.hasFlag(PRIVATE) =>
 
           val Modifiers(flags, pw, ann) = mods
           thusFar = thusFar :+ t
           List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tpt, rhs))
-        case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" => List.empty
+        case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" => List.empty[(TermName, ValDef)]
         case t @ ValDef(mods, name, tpt, rhs) if mods.hasFlag(Flag.PARAMACCESSOR) =>
 
           val Modifiers(_, pw, ann) = mods
           val flags = if (mods.hasFlag(Flag.IMPLICIT)) Flag.IMPLICIT else NoFlags
 
           thusFar = thusFar :+ ValDef(Modifiers(flags, pw, ann), name, tpt, rhs)
-          List.empty
+          List.empty[(TermName, ValDef)]
         case t =>
           thusFar = thusFar :+ t
-          List.empty
+          List.empty[(TermName, ValDef)]
       }
 
       // Replaces references between config values with the private name.
@@ -98,6 +110,10 @@ object safeConfig {
           case (key, tree) => key -> tree.name
         }.toMap)
 
+        @SuppressWarnings(Array(
+          "org.wartremover.warts.OptionPartial",
+          "org.wartremover.warts.TraversableOps"
+        ))
         override def transform(tree : Tree) : Tree = tree match {
           case Block(stmnts, last) =>
             val (args, trees) = stmnts.foldLeft(stack.head -> List.empty[Tree]) {
@@ -128,12 +144,12 @@ object safeConfig {
         val extractorName = freshType()
         val extractorClass = {
           val classMembers = configValues.map(_._2).flatMap {
-            case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, args), rhs) =>
-              List(ValDef(Modifiers(NoFlags, pw, ann), name, args.head, EmptyTree))
+            case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, arg :: _), rhs) =>
+              List(ValDef(Modifiers(NoFlags, pw, ann), name, arg, EmptyTree))
             case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) => tpt.tpe match {
               case TypeRef(_, _, typ :: Nil) =>
                 List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
-              case _ => List.empty
+              case _ => List.empty[ValDef]
             }
           }
           val construct = classMembers.foldRight(q"new $extractorName(..${classMembers.map(_.name)})") {
@@ -161,7 +177,19 @@ object safeConfig {
             .fold(errs => throw new com.kinja.config.BootupConfigurationException(errs), a => a)"""
 
           val accessors = configValues.map {
-            case (name, valDef) => q"val $name = $extractorInstance.${valDef.name}"
+            case (name, valDef) =>
+              val tpeOpt : Option[Tree] = valDef.tpt match {
+                case AppliedTypeTree(tpt, args) => args.headOption
+                case tpe =>
+                  tpe.tpe match {
+                    case TypeRef(_, _, typ :: Nil) => Some(tq"$typ")
+                    case _                         => None
+                  }
+              }
+              tpeOpt match {
+                case Some(tpe) => q"val $name: $tpe = $extractorInstance.${valDef.name}"
+                case None      => q"val $name = $extractorInstance.${valDef.name}"
+              }
           }
 
           (extractorClass :+ bundled) ++ accessors
@@ -180,14 +208,13 @@ object safeConfig {
       Template(newParents, impl.self, newBody)
     }
 
-    val output = annottees.head.tree match {
-      case ModuleDef(mods, name, impl) =>
+    val output = annottees.headOption.map(_.tree) match {
+      case Some(ModuleDef(mods, name, impl)) =>
         ModuleDef(mods, name, modBody(impl))
-      case ClassDef(mods, name, tparams, impl) =>
+      case Some(ClassDef(mods, name, tparams, impl)) =>
         ClassDef(mods, name, tparams, modBody(impl))
       case _ => c.abort(c.enclosingPosition, "Config must be an object.")
     }
-    // println(output)
     c.Expr[Any](Block(output :: Nil, Literal(Constant(()))))
   }
 }

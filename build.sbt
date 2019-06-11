@@ -29,19 +29,7 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(SpaceBeforeColon, true)
 
-wartremoverErrors ++= Warts.allBut(
-  Wart.Any,
-  Wart.Equals,
-  Wart.NonUnitStatements,
-  Wart.Nothing,
-  Wart.OptionPartial,
-  Wart.Overloading,
-  Wart.PublicInference,
-  Wart.Throw,
-  Wart.ToString,
-  Wart.TraversableOps,
-  Wart.Var
-)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading)
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.2",

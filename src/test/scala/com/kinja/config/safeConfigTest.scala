@@ -2,6 +2,12 @@ package com.kinja.config
 
 import org.scalatest._
 
+import scala.concurrent.duration.Duration
+
+@SuppressWarnings(Array(
+  "org.wartremover.warts.NonUnitStatements",
+  "org.wartremover.warts.Throw"
+))
 class safeConfigTest extends FlatSpec with Matchers {
   "safeConfig" should "handle getBoolean" in {
     TestConfig.getBoolean1 should be(true)
@@ -89,8 +95,8 @@ class safeConfigTest extends FlatSpec with Matchers {
     val errorMessage = try {
       @safeConfig(testConf)
       object MissingConf {
-        val foo = getString("does-not-exist")
-        val bar = getInt("also-does-not-exist")
+        val foo : BootupErrors[String] = getString("does-not-exist")
+        val bar : BootupErrors[Int] = getInt("also-does-not-exist")
       }
       MissingConf
       ""
@@ -104,8 +110,8 @@ class safeConfigTest extends FlatSpec with Matchers {
     val errorMessage = try {
       @safeConfig(testConf)
       object WrongTypeConf {
-        val foo = getInt("string")
-        val bar = getDuration("object-list")
+        val foo : BootupErrors[Int] = getInt("string")
+        val bar : BootupErrors[Duration] = getDuration("object-list")
       }
       WrongTypeConf
       ""

@@ -4,6 +4,7 @@ import com.typesafe.config._
 
 import scala.concurrent.duration.Duration
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.PublicInference"))
 @safeConfig(testConf)
 object TestConfig {
 
@@ -119,35 +120,41 @@ object EmptyConfig {
 
 final case class SomethingConfig(foo : Int, bar : String)
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig("injectedConfig")
 class DepInjTest1() extends DependencyInjection {
-  val getBoolean1 = getBoolean("bool")
+  val getBoolean1 : BootupErrors[Boolean] = getBoolean("bool")
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig("rawConfig")
 class DepInjTest2() extends DependencyInjection {
   private val rawConfig = injectedConfig
-  val getBoolean1 = getBoolean("bool")
+  val getBoolean1 : BootupErrors[Boolean] = getBoolean("bool")
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig("rawConfig")
 class DepInjTest3() extends DependencyInjection {
   private val rawConfig : com.typesafe.config.Config = injectedConfig
-  val getBoolean1 = getBoolean("bool")
+  val getBoolean1 : BootupErrors[Boolean] = getBoolean("bool")
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig(testConf)
 object ProtectedMemberTest extends ProtectedMember {
-  val getBoolean1 = getBoolean(someString)
+  val getBoolean1 : BootupErrors[Boolean] = getBoolean(someString)
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig(testConf)
 class ClassArgTest1(private val someString : String) {
-  val getBoolean1 = getBoolean(someString)
+  val getBoolean1 : BootupErrors[Boolean] = getBoolean(someString)
 }
 
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 @safeConfig("rawConfig")
 class ClassArgTest2(private val rawConfig : Config) {
 
-  val secret = getString("string")
+  val secret : BootupErrors[String] = getString("string")
 }
