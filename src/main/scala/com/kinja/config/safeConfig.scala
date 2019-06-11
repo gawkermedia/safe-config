@@ -104,9 +104,9 @@ object safeConfig {
               case ((idents, block), t @ ValDef(_, name, _, _)) =>
                 val args = idents - name
                 stack = args +: stack
-                try (
+                try {
                   args -> (super.transform(t) :: block)
-                  ) finally { stack = stack.tail }
+                } finally { stack = stack.tail }
               case ((idents, block), t) =>
                 idents -> (super.transform(t) :: block)
             }
