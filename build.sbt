@@ -5,7 +5,7 @@ organization := "com.kinja"
 version := "1.1.2-SNAPSHOT"
 
 scalaVersion := "2.12.8"
-crossScalaVersions := Seq("2.12.8")
+crossScalaVersions := Seq("2.12.8", "2.11.12")
 
 scalacOptions ++= Seq(
   "-deprecation",          // Show details of deprecation warnings.
