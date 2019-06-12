@@ -10,10 +10,10 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
   /** Sequentially apply another BootupErrors to this one, accumulating any errors therein. */
   def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B => C]) : BootupErrors[C] = BootupErrors {
     (this.run, that.run) match {
-      case (Right(g), Right(k)) => Right(g(k))
-      case (Left(e), Right(k))  => Left(e)
-      case (Right(e), Left(k))  => Left(k)
-      case (Left(e), Left(k))   => Left(e ++ k)
+      case (Right(g), Right(k)) => Right[Seq[ConfigError], C](g(k))
+      case (Left(e), Right(k))  => Left[Seq[ConfigError], C](e)
+      case (Right(e), Left(k))  => Left[Seq[ConfigError], C](k)
+      case (Left(e), Left(k))   => Left[Seq[ConfigError], C](e ++ k)
     }
   }
 
@@ -41,8 +41,8 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
 }
 
 object BootupErrors {
-  def apply[A](a : A) : BootupErrors[A] = BootupErrors(Right(a))
-  def failed[A](err : ConfigError) : BootupErrors[A] = BootupErrors(Left(err :: Nil))
+  def apply[A](a : A) : BootupErrors[A] = BootupErrors(Right[Seq[ConfigError], A](a))
+  def failed[A](err : ConfigError) : BootupErrors[A] = BootupErrors(Left[Seq[ConfigError], A](err :: Nil))
 
   def sequence[A](as : List[BootupErrors[A]]) : BootupErrors[List[A]] =
     as.foldRight(BootupErrors(List.empty[A])) {
