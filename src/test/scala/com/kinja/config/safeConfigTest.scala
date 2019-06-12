@@ -4,7 +4,10 @@ import org.scalatest._
 
 import scala.concurrent.duration.Duration
 
-@SuppressWarnings(Array("org.wartremover.warts.Throw"))
+@SuppressWarnings(Array(
+  "org.wartremover.warts.NonUnitStatements",
+  "org.wartremover.warts.Throw"
+))
 class safeConfigTest extends FlatSpec with Matchers {
   "safeConfig" should "handle getBoolean" in {
     TestConfig.getBoolean1 should be(true)

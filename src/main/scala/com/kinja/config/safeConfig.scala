@@ -19,6 +19,8 @@ object safeConfig {
 
   @SuppressWarnings(Array(
     "org.wartremover.warts.Any",
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.Nothing",
     "org.wartremover.warts.ToString",
     "org.wartremover.warts.Var"
   ))

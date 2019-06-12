@@ -39,7 +39,7 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(SpaceBeforeColon, true)
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading, Wart.NonUnitStatements, Wart.Nothing)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading)
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.2",
