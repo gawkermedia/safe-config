@@ -5,30 +5,30 @@ package com.kinja.config
  * It is also a monad (but does not accumulate errors in that case).
  */
 final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigError], A]) extends AnyVal {
-  def map[B](f : A ⇒ B) : BootupErrors[B] = BootupErrors(this.run.right.map(f))
+  def map[B](f : A => B) : BootupErrors[B] = BootupErrors(this.run.right.map(f))
 
   /** Sequentially apply another BootupErrors to this one, accumulating any errors therein. */
-  def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B ⇒ C]) : BootupErrors[C] = BootupErrors {
+  def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B => C]) : BootupErrors[C] = BootupErrors {
     (this.run, that.run) match {
-      case (Right(g), Right(k)) ⇒ Right(g(k))
-      case (Left(e), Right(k))  ⇒ Left(e)
-      case (Right(e), Left(k))  ⇒ Left(k)
-      case (Left(e), Left(k))   ⇒ Left(e ++ k)
+      case (Right(g), Right(k)) => Right(g(k))
+      case (Left(e), Right(k))  => Left(e)
+      case (Right(e), Left(k))  => Left(k)
+      case (Left(e), Left(k))   => Left(e ++ k)
     }
   }
 
-  def flatten[B](implicit ev : A <:< BootupErrors[B]) : BootupErrors[B] = this.flatMap(a ⇒ a)
+  def flatten[B](implicit ev : A <:< BootupErrors[B]) : BootupErrors[B] = this.flatMap(a => a)
 
   /** Bind on another BootupErrors. Unlike `<*>` this does not accumulate errors. */
-  def flatMap[B](f : A ⇒ BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run.right.flatMap(f(_).run))
+  def flatMap[B](f : A => BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run.right.flatMap(f(_).run))
 
-  def fold[B](err : Seq[ConfigError] ⇒ B, succ : A ⇒ B) : B = run.fold(err, succ)
-  def getOrElse(e : Seq[ConfigError] ⇒ A) : A = this.fold(e, a ⇒ a)
+  def fold[B](err : Seq[ConfigError] => B, succ : A => B) : B = run.fold(err, succ)
+  def getOrElse(e : Seq[ConfigError] => A) : A = this.fold(e, a => a)
 
   /**
    * Return all accumulated errors, if any
    */
-  def errors : Seq[ConfigError] = run.fold(a ⇒ a, _ ⇒ Nil)
+  def errors : Seq[ConfigError] = run.fold(a => a, _ => Nil)
 
   // TODO this should return None when the value is missing, Some when successful,
   // and a failed BootupErrors in all other situations.
@@ -37,7 +37,7 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
   /**
    * Returns None if this BootupErrors contains any errors, otherwise Some.
    */
-  def toOption : Option[A] = this.fold(_ ⇒ None, Some(_))
+  def toOption : Option[A] = this.fold(_ => None, Some(_))
 }
 
 object BootupErrors {
@@ -46,9 +46,9 @@ object BootupErrors {
 
   def sequence[A](as : List[BootupErrors[A]]) : BootupErrors[List[A]] =
     as.foldRight(BootupErrors(List.empty[A])) {
-      case (a, acc) ⇒ for {
-        a_ ← a
-        acc_ ← acc
+      case (a, acc) => for {
+        a_ <- a
+        acc_ <- acc
       } yield a_ :: acc_
     }
 }

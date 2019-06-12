@@ -78,8 +78,8 @@ object TestConfig {
   val getRawConfig2 : BootupErrors[Config] = getRawConfig("sub-config")
 
   val levelOne = for {
-    conf ← root
-    levelOne ← conf.getInt("levelone")
+    conf <- root
+    levelOne <- conf.getInt("levelone")
   } yield levelOne
 
   val bar : BootupErrors[String] = root.flatMap(_.getString("sub-config.string"))
@@ -87,16 +87,16 @@ object TestConfig {
   val _levelOne = getInt("levelone")
 
   val otherLevelOne : BootupErrors[Int] = for {
-    conf ← root
-    levelOne ← conf.getInt("levelone")
+    conf <- root
+    levelOne <- conf.getInt("levelone")
   } yield levelOne
 
   val pureValue = 5
 
   val somethingConfig : BootupErrors[SomethingConfig] = for {
-    conf ← subConfig
-    foo ← conf.getInt("int")
-    bar ← conf.getString("string")
+    conf <- subConfig
+    foo <- conf.getInt("int")
+    bar <- conf.getString("string")
   } yield SomethingConfig(foo, bar)
 
   val blockTest1 = {
@@ -105,8 +105,8 @@ object TestConfig {
   }
 
   val thirdLevelOne : BootupErrors[Int] = for {
-    conf ← root
-    levelOne ← conf.getInt("levelone")
+    conf <- root
+    levelOne <- conf.getInt("levelone")
   } yield levelOne
 
   val otherPureValue : Int = 7
