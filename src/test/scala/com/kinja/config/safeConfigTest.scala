@@ -4,10 +4,7 @@ import org.scalatest._
 
 import scala.concurrent.duration.Duration
 
-@SuppressWarnings(Array(
-  "org.wartremover.warts.NonUnitStatements",
-  "org.wartremover.warts.Throw"
-))
+@SuppressWarnings(Array("org.wartremover.warts.Throw"))
 class safeConfigTest extends FlatSpec with Matchers {
   "safeConfig" should "handle getBoolean" in {
     TestConfig.getBoolean1 should be(true)
@@ -50,13 +47,13 @@ class safeConfigTest extends FlatSpec with Matchers {
   }
 
   it should "handle getLong" in {
-    TestConfig.getLong1 should be(2147483648l)
-    TestConfig.getLong2 should be(2147483648l)
+    TestConfig.getLong1 should be(2147483648L)
+    TestConfig.getLong2 should be(2147483648L)
   }
 
   it should "handle getLongList" in {
-    TestConfig.getLongList1 should be(List(2147483648l, 2147483649l, 2147483650l))
-    TestConfig.getLongList2 should be(List(2147483648l, 2147483649l, 2147483650l))
+    TestConfig.getLongList1 should be(List(2147483648L, 2147483649L, 2147483650L))
+    TestConfig.getLongList2 should be(List(2147483648L, 2147483649L, 2147483650L))
   }
 
   it should "handle getObject" in {
