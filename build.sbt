@@ -1,46 +1,11 @@
 import scalariform.formatter.preferences._
 
-lazy val secRing: String = System.getProperty("SEC_RING", "")
-lazy val pubRing: String = System.getProperty("PUB_RING", "")
-lazy val pgpPass: String = System.getProperty("PGP_PASS", "")
-
-credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype")
-pgpSecretRing := file(secRing)
-pgpPublicRing := file(pubRing)
-pgpPassphrase := Some(Array(pgpPass: _*))
-
 name := "safe-config"
-
 organization := "com.kinja"
-
 version := "1.1.2-SNAPSHOT"
 
 scalaVersion := "2.12.8"
-
 crossScalaVersions := Seq("2.12.8")
-
-pomExtra := {
-  <url>https://github.com/gawkermedia/safe-config</url>
-  <licenses>
-    <license>
-      <name>BSD 3-Clause</name>
-      <url>https://github.com/gawkermedia/safe-config/blob/master/LICENSE</url>
-    </license>
-  </licenses>
-  <scm>
-    <connection>git@github.com:gawkermedia/safe-config.git</connection>
-    <developerConnection>scm:git:git@github.com:gawkermedia/safe-config.git</developerConnection>
-    <url>git@github.com:gawkermedia/safe-config</url>
-  </scm>
-  <developers>
-    <developer>
-      <name>Claire Neveu</name>
-    </developer>
-    <developer>
-      <name>Pedro Rodriguez</name>
-    </developer>
-  </developers>
-}
 
 scalacOptions ++= Seq(
   "-deprecation",          // Show details of deprecation warnings.
@@ -86,3 +51,5 @@ libraryDependencies ++= Seq(
 )
 
 lazy val root = Project("safe-config", file("."))
+
+publishTo := sonatypePublishTo.value
