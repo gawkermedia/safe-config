@@ -44,7 +44,7 @@ wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading)
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.4",
   "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-  "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )
 
 libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
