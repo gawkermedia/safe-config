@@ -19,6 +19,8 @@ object safeConfig {
 
   @SuppressWarnings(Array(
     "org.wartremover.warts.Any",
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.Nothing",
     "org.wartremover.warts.ToString",
     "org.wartremover.warts.Var"
   ))
@@ -61,12 +63,6 @@ object safeConfig {
         case t : TermSymbol => q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
       }
 
-      @SuppressWarnings(Array(
-        "org.wartremover.warts.NonUnitStatements",
-        "org.wartremover.warts.Nothing"
-      ))
-      def isBootupErrors(typ : Type) : Boolean = typ <:< typeOf[BootupErrors[_]]
-
       // Previous definitions. Used for type checking.
       // TODO: Typecheck the whole block at once to allow for forward references.
       //       This will require some serious reworking of the implementation.
@@ -82,7 +78,7 @@ object safeConfig {
           thusFar = thusFar :+ ValDef(mods, name, tq"$typ", rhs)
 
           // Ignore pure values.
-          if (isBootupErrors(typ))
+          if (typ <:< typeOf[BootupErrors[_]])
             List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
           else
             List.empty[(TermName, ValDef)]
