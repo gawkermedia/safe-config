@@ -11,8 +11,8 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
   def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B => C]) : BootupErrors[C] = BootupErrors {
     (this.run, that.run) match {
       case (Right(g), Right(k)) => Right[Seq[ConfigError], C](g(k))
-      case (Left(e), Right(k))  => Left[Seq[ConfigError], C](e)
-      case (Right(e), Left(k))  => Left[Seq[ConfigError], C](k)
+      case (Left(e), Right(_))  => Left[Seq[ConfigError], C](e)
+      case (Right(_), Left(k))  => Left[Seq[ConfigError], C](k)
       case (Left(e), Left(k))   => Left[Seq[ConfigError], C](e ++ k)
     }
   }
