@@ -3,7 +3,7 @@ import xerial.sbt.Sonatype._
 sonatypeProfileName := "com.kinja"
 
 publishMavenStyle := true
-useGpg := true
+// useGpg := true
 
 description := "Safe Config provides a safe and convenient wrapper around Typesafe's Config library."
 homepage := Some(url("https://github.com/gawkermedia/safe-config"))
