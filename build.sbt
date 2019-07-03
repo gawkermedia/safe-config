@@ -55,6 +55,13 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     )
 })
 
+libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, scalaMajor)) if scalaMajor < 13 =>
+    Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1")
+  case _ =>
+    Seq()
+})
+
 scalariformAutoformat := true
 scalariformPreferences := scalariformPreferences.value
   .setPreference(AlignArguments, true)

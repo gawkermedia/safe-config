@@ -4,8 +4,7 @@ import com.typesafe.config._
 
 import java.util.concurrent.TimeUnit
 
-import scala.collection.JavaConverters._ // TODO deprecated in Scala 2.13
-// import scala.jdk.CollectionConverters._ // TODO Scala 2.13 only
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 
 /**
