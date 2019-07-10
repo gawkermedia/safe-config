@@ -76,7 +76,10 @@ libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((2, scalaMajor)) if scalaMajor >= 13 =>
     Seq()
   case _ =>
-    Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full))
+    Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1"
+    )
 })
 
 lazy val root = Project("safe-config", file("."))
