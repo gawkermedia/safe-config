@@ -5,7 +5,10 @@ package com.kinja.config
  * It is also a monad (but does not accumulate errors in that case).
  */
 final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigError], A]) extends AnyVal {
-  def map[B](f : A => B) : BootupErrors[B] = BootupErrors(this.run.map(f))
+  def map[B](f : A => B) : BootupErrors[B] = BootupErrors(this.run match {
+    case Left(e)  => Left[Seq[ConfigError], B](e)
+    case Right(a) => Right[Seq[ConfigError], B](f(a))
+  })
 
   /** Sequentially apply another BootupErrors to this one, accumulating any errors therein. */
   def <*>[B, C](that : BootupErrors[B])(implicit ev : <:<[A, B => C]) : BootupErrors[C] = BootupErrors {
@@ -20,7 +23,11 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
   def flatten[B](implicit ev : A <:< BootupErrors[B]) : BootupErrors[B] = this.flatMap(a => a)
 
   /** Bind on another BootupErrors. Unlike `<*>` this does not accumulate errors. */
-  def flatMap[B](f : A => BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run.flatMap(f(_).run))
+  // def flatMap[B](f : A => BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run.flatMap(f(_).run))
+  def flatMap[B](f : A => BootupErrors[B]) : BootupErrors[B] = BootupErrors(this.run match {
+    case Left(e)  => Left[Seq[ConfigError], B](e)
+    case Right(a) => f(a).run
+  })
 
   def fold[B](err : Seq[ConfigError] => B, succ : A => B) : B = run.fold(err, succ)
   def getOrElse(e : Seq[ConfigError] => A) : A = this.fold(e, a => a)

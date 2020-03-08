@@ -5,7 +5,7 @@ organization := "com.kinja"
 version := "1.1.3-SNAPSHOT"
 
 scalaVersion := "2.13.1"
-crossScalaVersions := Seq("2.13.1", "2.12.8")
+crossScalaVersions := Seq("2.13.1", "2.12.8", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
@@ -16,7 +16,6 @@ scalacOptions ++= Seq(
   "-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
   "-Xlint",                            // Ensure best practices are being followed.
   "-Xlint:adapted-args",               // Warn if an argument list is modified to match the receiver.
-  "-Xlint:constant",                   // Evaluation of a constant arithmetic expression results in an error.
   "-Xlint:delayedinit-select",         // Selecting member of DelayedInit.
   "-Xlint:doc-detached",               // A Scaladoc comment appears to be detached from its element.
   "-Xlint:inaccessible",               // Warn about inaccessible types in method signatures.
@@ -32,20 +31,29 @@ scalacOptions ++= Seq(
   "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
   "-Ywarn-dead-code",                  // Fail when dead code is present. Prevents accidentally unreachable code.
   "-Ywarn-dead-code",                  // Fail when dead code is present. Prevents accidentally unreachable code.
-  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
-  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
   // "-Ywarn-unused:params",              // Warn if a value parameter is unused.
   // "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-  "-Ywarn-unused:privates",            // Warn if a private member is unused.
   "-Ywarn-value-discard"               // Prevent accidental discarding of results in unit functions.
 )
 
 scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((2, scalaMajor)) if scalaMajor >= 13 =>
     Seq(
-      "-Ymacro-annotations"
+      "-Ymacro-annotations",
+      "-Xlint:constant",                  // Evaluation of a constant arithmetic expression results in an error.
+      "-Ywarn-unused:locals",             // Warn if a local definition is unused.
+      "-Ywarn-unused:implicits",          // Warn if an implicit parameter is unused.
+      "-Ywarn-unused:privates",           // Warn if a private member is unused.
+      "-Ywarn-extra-implicit"             // Warn when more than one implicit parameter section is defined.
+    )
+  case Some((2, scalaMajor)) if scalaMajor >= 12 =>
+    Seq(
+      "-Xlint:constant",                  // Evaluation of a constant arithmetic expression results in an error.
+      "-Ywarn-unused:locals",             // Warn if a local definition is unused.
+      "-Ywarn-unused:implicits",          // Warn if an implicit parameter is unused.
+      "-Ywarn-unused:privates",           // Warn if a private member is unused.
+      "-Ywarn-extra-implicit"             // Warn when more than one implicit parameter section is defined.
     )
   case _ =>
     Seq(
