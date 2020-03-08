@@ -5,6 +5,7 @@ package com.kinja.config
  * It is also a monad (but does not accumulate errors in that case).
  */
 final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigError], A]) extends AnyVal {
+  // def map[B](f : A => B) : BootupErrors[B] = BootupErrors(this.run.map(f))
   def map[B](f : A => B) : BootupErrors[B] = BootupErrors(this.run match {
     case Left(e)  => Left[Seq[ConfigError], B](e)
     case Right(a) => Right[Seq[ConfigError], B](f(a))
