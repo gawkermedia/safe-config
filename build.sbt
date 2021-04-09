@@ -4,8 +4,8 @@ name := "safe-config"
 organization := "com.kinja"
 version := "1.1.3-SNAPSHOT"
 
-scalaVersion := "2.13.1"
-crossScalaVersions := Seq("2.13.1", "2.12.8", "2.11.12")
+scalaVersion := "2.13.5"
+crossScalaVersions := Seq("2.13.5", "2.12.8", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
@@ -21,7 +21,6 @@ scalacOptions ++= Seq(
   "-Xlint:inaccessible",               // Warn about inaccessible types in method signatures.
   "-Xlint:infer-any",                  // Warn when a type argument is inferred to be `Any`.
   "-Xlint:missing-interpolator",       // A string literal appears to be missing an interpolator id.
-  "-Xlint:nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
   "-Xlint:nullary-unit",               // Warn when nullary methods return Unit.
   "-Xlint:option-implicit",            // Option.apply used implicit view.
   "-Xlint:package-object-classes",     // Class or object defined in package object.
@@ -72,7 +71,7 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(SpaceBeforeColon, true)
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading, Wart.ListAppend)
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.4",

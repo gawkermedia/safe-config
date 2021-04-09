@@ -49,7 +49,7 @@ final case class BootupErrors[A] private[BootupErrors] (run : Either[Seq[ConfigE
 }
 
 object BootupErrors {
-  def apply[A](a : A) : BootupErrors[A] = BootupErrors(Right[Seq[ConfigError], A](a))
+  def apply[A](a : A) : BootupErrors[A] = new BootupErrors(Right[Seq[ConfigError], A](a))
   def failed[A](err : ConfigError) : BootupErrors[A] = BootupErrors(Left[Seq[ConfigError], A](err :: Nil))
 
   def sequence[A](as : List[BootupErrors[A]]) : BootupErrors[List[A]] =

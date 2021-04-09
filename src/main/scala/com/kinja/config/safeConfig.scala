@@ -43,7 +43,7 @@ object safeConfig {
     }
 
     // The root element.
-    val root = q"""lazy val root: com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig($underlying, "root"))"""
+    val root = q"""lazy val root: com.kinja.config.BootupErrors[com.kinja.config.LiftedTypesafeConfig] = com.kinja.config.BootupErrors(com.kinja.config.LiftedTypesafeConfig(($underlying, "root")))"""
 
     def modBody(impl : Template) : Template = {
       val configApi = tq"com.kinja.config.ConfigApi"
