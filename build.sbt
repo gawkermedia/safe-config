@@ -4,8 +4,8 @@ name := "safe-config"
 organization := "com.kinja"
 version := "1.1.3-SNAPSHOT"
 
-scalaVersion := "2.13.5"
-crossScalaVersions := Seq("2.13.5", "2.12.8", "2.11.12")
+scalaVersion := "2.13.6"
+crossScalaVersions := Seq("2.13.6", "2.12.8", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
