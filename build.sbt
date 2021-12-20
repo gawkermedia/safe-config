@@ -2,10 +2,10 @@ import scalariform.formatter.preferences._
 
 name := "safe-config"
 organization := "com.kinja"
-version := "1.1.3-SNAPSHOT"
+version := "1.1.3"
 
-scalaVersion := "2.13.6"
-crossScalaVersions := Seq("2.13.6", "2.12.8", "2.11.12")
+scalaVersion := "2.13.7"
+crossScalaVersions := Seq("2.13.7", "2.12.15", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
@@ -84,7 +84,7 @@ libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     Seq()
   case _ =>
     Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1"
     )
 })
