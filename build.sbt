@@ -2,7 +2,7 @@ import scalariform.formatter.preferences._
 
 name := "safe-config"
 organization := "com.kinja"
-version := "1.1.3"
+version := "1.1.4-SNAPSHOT"
 
 scalaVersion := "2.13.7"
 crossScalaVersions := Seq("2.13.7", "2.12.15", "2.11.12")
