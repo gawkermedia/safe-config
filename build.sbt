@@ -2,10 +2,10 @@ import scalariform.formatter.preferences._
 
 name := "safe-config"
 organization := "com.kinja"
-version := "1.1.4-SNAPSHOT"
+version := "1.1.5-SNAPSHOT"
 
-scalaVersion := "2.13.7"
-crossScalaVersions := Seq("2.13.7", "2.12.15", "2.11.12")
+scalaVersion := "2.13.11"
+crossScalaVersions := Seq(scalaVersion.value, "2.12.15", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
@@ -71,10 +71,10 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(SpaceBeforeColon, true)
 
-wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading, Wart.ListAppend)
+wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading, Wart.ListAppend, Wart.IterableOps)
 
 libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.3.4",
+  "com.typesafe" % "config" % "1.4.2",
   "org.scala-lang" % "scala-compiler" % scalaVersion.value,
   "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )
@@ -85,7 +85,7 @@ libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case _ =>
     Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1"
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1"
     )
 })
 

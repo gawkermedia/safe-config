@@ -158,7 +158,7 @@ object safeConfig {
         }
         val extractor = {
           val constructor =
-            if (configValues.length > 1)
+            if (configValues.lengthIs > 1)
               q"${extractorName.toTermName}.construct"
             else
               q"${extractorName.toTermName}.construct"

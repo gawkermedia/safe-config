@@ -29,7 +29,7 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
 
   /** Retrieves the value found at the given name as a List of Boolean values. */
   def getBooleanList(name : String) : BootupErrors[List[Boolean]] =
-    lift(name, underlying.getBooleanList).map(_.asScala.toList.map(b => b : Boolean))
+    lift(name, underlying.getBooleanList).map(_.asScala.toList.map(b => b.booleanValue() : Boolean))
 
   /** Retrieves a sub-config from the values with the given prefix. */
   def getConfig(name : String) : BootupErrors[LiftedTypesafeConfig] =
@@ -40,7 +40,7 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
 
   /** Retrieves the value found at the given name as a List of Doubles. */
   def getDoubleList(name : String) : BootupErrors[List[Double]] =
-    lift(name, underlying.getDoubleList).map(_.asScala.toList.map(d => d : Double))
+    lift(name, underlying.getDoubleList).map(_.asScala.toList.map(d => d.doubleValue() : Double))
 
   /** Retrieves the value found at the given name as a Duration. */
   def getDuration(name : String) : BootupErrors[Duration] =
@@ -50,21 +50,21 @@ final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndNa
   /** Retrieves the value found at the given name as a List of Durations. */
   def getDurationList(name : String) : BootupErrors[List[Duration]] =
     lift(name, (s => underlying.getDurationList(s, TimeUnit.MILLISECONDS)))
-      .map(_.asScala.toList.map(ms => Duration(ms, TimeUnit.MILLISECONDS)))
+      .map(_.asScala.toList.map(ms => Duration(ms.longValue(), TimeUnit.MILLISECONDS)))
 
   /** Retrieves the value found at the given name as an Int. */
   def getInt(name : String) : BootupErrors[Int] = lift(name, underlying.getInt)
 
   /** Retrieves the value found at the given name as a List of Ints. */
   def getIntList(name : String) : BootupErrors[List[Int]] =
-    lift(name, underlying.getIntList).map(_.asScala.toList.map(i => i : Int))
+    lift(name, underlying.getIntList).map(_.asScala.toList.map(i => i.intValue() : Int))
 
   /** Retrieves the value found at the given name as a Long. */
   def getLong(name : String) : BootupErrors[Long] = lift(name, underlying.getLong)
 
   /** Retrieves the value found at the given name as a List of Longs. */
   def getLongList(name : String) : BootupErrors[List[Long]] =
-    lift(name, underlying.getLongList).map(_.asScala.toList.map(l => l : Long))
+    lift(name, underlying.getLongList).map(_.asScala.toList.map(l => l.longValue() : Long))
 
   /** Retrieves the value found at the given name as a ConfigObject. */
   def getObject(name : String) : BootupErrors[ConfigObject] = lift(name, underlying.getObject)
