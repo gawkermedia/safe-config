@@ -5,7 +5,7 @@ organization := "com.kinja"
 version := "1.1.5-SNAPSHOT"
 
 scalaVersion := "2.13.11"
-crossScalaVersions := Seq(scalaVersion.value, "2.12.15", "2.11.12")
+crossScalaVersions := Seq(scalaVersion.value, "2.12.18", "2.11.12")
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
