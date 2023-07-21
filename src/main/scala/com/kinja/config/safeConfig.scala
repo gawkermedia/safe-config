@@ -21,6 +21,7 @@ object safeConfig {
     "org.wartremover.warts.Any",
     "org.wartremover.warts.NonUnitStatements",
     "org.wartremover.warts.Nothing",
+    "org.wartremover.warts.SizeIs",
     "org.wartremover.warts.ToString",
     "org.wartremover.warts.Var"
   ))
@@ -158,7 +159,7 @@ object safeConfig {
         }
         val extractor = {
           val constructor =
-            if (configValues.lengthIs > 1)
+            if (configValues.length > 1)
               q"${extractorName.toTermName}.construct"
             else
               q"${extractorName.toTermName}.construct"
