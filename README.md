@@ -6,7 +6,7 @@ Safe Config provides a safe and convenient wrapper around Typesafe's Config libr
 Add the following to your `build.sbt` file:
 ```scala
 libraryDependencies ++= Seq(
-  "com.kinja" %% "safe-config" % "1.1.5",
+  "com.kinja" %% "safe-config" % "1.1.6",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full))
 ```
 Create your first config object:
