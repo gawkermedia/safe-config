@@ -42,7 +42,8 @@ object safeConfig {
         params match {
           case Literal(Constant(i: String)) :: Nil => Ident(TermName(i))
           case head :: Nil => head
-          case _ => c.abort(c.enclosingPosition, "No underlying configuration given.")
+          case _ =>
+            c.abort(c.enclosingPosition, "No underlying configuration given.")
         }
       case _ => c.abort(c.enclosingPosition, "Encountered unexpected tree.")
     }
@@ -59,15 +60,20 @@ object safeConfig {
       } :+ configApi
 
       // Put members of mixins like ConfigApi into scope.
-      val context = c.typecheck(q"""(throw new java.lang.Exception("")) : Object with ..$newParents""")
-      val dummyMembers = context.tpe.members.filter(member => member.name.decodedName.toString.trim != "wait").map {
-        case m: MethodSymbol =>
-          val params =
-            m.paramLists.headOption.toList.flatMap(_.map(p => q"""val ${p.name.toTermName} : ${p.typeSignature}"""))
-          q"""def ${m.name.toTermName}(..$params) : ${m.returnType} = (throw new java.lang.Exception("")) : ${m.returnType}"""
-        case t: TermSymbol =>
-          q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
-      }
+      val context = c.typecheck(
+        q"""(throw new java.lang.Exception("")) : Object with ..$newParents"""
+      )
+      val dummyMembers = context.tpe.members
+        .filter(member => member.name.decodedName.toString.trim != "wait")
+        .map {
+          case m: MethodSymbol =>
+            val params = m.paramLists.headOption.toList.flatMap(
+              _.map(p => q"""val ${p.name.toTermName} : ${p.typeSignature}""")
+            )
+            q"""def ${m.name.toTermName}(..$params) : ${m.returnType} = (throw new java.lang.Exception("")) : ${m.returnType}"""
+          case t: TermSymbol =>
+            q"""var ${t.name.toTermName} : ${t.typeSignature} = (throw new java.lang.Exception("")) : ${t.typeSignature}"""
+        }
 
       // Previous definitions. Used for type checking.
       // TODO: Typecheck the whole block at once to allow for forward references.
@@ -79,25 +85,46 @@ object safeConfig {
             try {
               c.typecheck(Block(thusFar, rhs)).tpe
             } catch {
-              case e: TypecheckException => c.abort(e.pos.asInstanceOf[c.Position], e.getMessage)
+              case e: TypecheckException =>
+                c.abort(e.pos.asInstanceOf[c.Position], e.getMessage)
             }
           val Modifiers(flags, pw, ann) = mods
           thusFar = thusFar :+ ValDef(mods, name, tq"$typ", rhs)
 
           // Ignore pure values.
           if (typ <:< typeOf[BootupErrors[_]])
-            List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tq"$typ", rhs))
+            List(
+              name -> ValDef(
+                Modifiers(PRIVATE | flags, pw, ann),
+                freshTerm(),
+                tq"$typ",
+                rhs
+              )
+            )
           else
             List.empty[(TermName, ValDef)]
-        case t @ ValDef(mods, name, tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args), rhs)
-            if !mods.hasFlag(PRIVATE) =>
+        case t @ ValDef(
+              mods,
+              name,
+              tpt @ AppliedTypeTree(Ident(TypeName("BootupErrors")), args),
+              rhs
+            ) if !mods.hasFlag(PRIVATE) =>
           val Modifiers(flags, pw, ann) = mods
           thusFar = thusFar :+ t
-          List(name -> ValDef(Modifiers(PRIVATE | flags, pw, ann), freshTerm(), tpt, rhs))
-        case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" => List.empty[(TermName, ValDef)]
+          List(
+            name -> ValDef(
+              Modifiers(PRIVATE | flags, pw, ann),
+              freshTerm(),
+              tpt,
+              rhs
+            )
+          )
+        case DefDef(_, name, _, _, _, _) if name.decodedName.toString == "<init>" =>
+          List.empty[(TermName, ValDef)]
         case t @ ValDef(mods, name, tpt, rhs) if mods.hasFlag(Flag.PARAMACCESSOR) =>
           val Modifiers(_, pw, ann) = mods
-          val flags = if (mods.hasFlag(Flag.IMPLICIT)) Flag.IMPLICIT else NoFlags
+          val flags =
+            if (mods.hasFlag(Flag.IMPLICIT)) Flag.IMPLICIT else NoFlags
 
           thusFar = thusFar :+ ValDef(Modifiers(flags, pw, ann), name, tpt, rhs)
           List.empty[(TermName, ValDef)]
@@ -120,16 +147,17 @@ object safeConfig {
         )
         override def transform(tree: Tree): Tree = tree match {
           case Block(stmnts, last) =>
-            val (args, trees) = stmnts.foldLeft(stack.head -> List.empty[Tree]) {
-              case ((idents, block), t @ ValDef(_, name, _, _)) =>
-                val args = idents - name
-                stack = args +: stack
-                try {
-                  args -> (super.transform(t) :: block)
-                } finally { stack = stack.tail }
-              case ((idents, block), t) =>
-                idents -> (super.transform(t) :: block)
-            }
+            val (args, trees) =
+              stmnts.foldLeft(stack.head -> List.empty[Tree]) {
+                case ((idents, block), t @ ValDef(_, name, _, _)) =>
+                  val args = idents - name
+                  stack = args +: stack
+                  try {
+                    args -> (super.transform(t) :: block)
+                  } finally { stack = stack.tail }
+                case ((idents, block), t) =>
+                  idents -> (super.transform(t) :: block)
+              }
             stack = args +: stack
             try super.transform(tree)
             finally { stack = stack.tail }
@@ -150,19 +178,32 @@ object safeConfig {
         val extractorName = freshType()
         val extractorClass = {
           val classMembers = configValues.map(_._2).flatMap {
-            case ValDef(Modifiers(flags, pw, ann), name, AppliedTypeTree(tpt, arg :: _), rhs) =>
+            case ValDef(
+                  Modifiers(flags, pw, ann),
+                  name,
+                  AppliedTypeTree(tpt, arg :: _),
+                  rhs
+                ) =>
               List(ValDef(Modifiers(NoFlags, pw, ann), name, arg, EmptyTree))
             case ValDef(Modifiers(flags, pw, ann), name, tpt, rhs) =>
               tpt.tpe match {
                 case TypeRef(_, _, typ :: Nil) =>
-                  List(ValDef(Modifiers(NoFlags, pw, ann), name, tq"$typ", EmptyTree))
+                  List(
+                    ValDef(
+                      Modifiers(NoFlags, pw, ann),
+                      name,
+                      tq"$typ",
+                      EmptyTree
+                    )
+                  )
                 case _ => List.empty[ValDef]
               }
           }
-          val construct =
-            classMembers.foldRight(q"new $extractorName(..${classMembers.map(_.name)})") { case (valDef, acc) =>
-              q"($valDef => $acc)"
-            }
+          val construct = classMembers.foldRight(
+            q"new $extractorName(..${classMembers.map(_.name)})"
+          ) { case (valDef, acc) =>
+            q"($valDef => $acc)"
+          }
           q"""private final class $extractorName(..$classMembers)
               private object ${extractorName.toTermName} {
                 def construct = $construct
@@ -175,10 +216,11 @@ object safeConfig {
             else
               q"${extractorName.toTermName}.construct"
 
-          val applied =
-            configValues.foldLeft(q"com.kinja.config.BootupErrors($constructor)") { case (acc, (_, valDef)) =>
-              q"$acc <*> ${valDef.name}"
-            }
+          val applied = configValues.foldLeft(
+            q"com.kinja.config.BootupErrors($constructor)"
+          ) { case (acc, (_, valDef)) =>
+            q"$acc <*> ${valDef.name}"
+          }
 
           val extractorInstance = freshTerm()
 
@@ -195,7 +237,8 @@ object safeConfig {
                 }
             }
             tpeOpt match {
-              case Some(tpe) => q"val $name: $tpe = $extractorInstance.${valDef.name}"
+              case Some(tpe) =>
+                q"val $name: $tpe = $extractorInstance.${valDef.name}"
               case None => q"val $name = $extractorInstance.${valDef.name}"
             }
           }
