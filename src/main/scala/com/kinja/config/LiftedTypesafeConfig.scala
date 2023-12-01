@@ -10,6 +10,7 @@ import scala.concurrent.duration.Duration
 /**
  * A wrapper around TypesafeConfig's Config that lifts Missing and WrongType errors into BootupErrors
  */
+@SuppressWarnings(Array("org.wartremover.warts.ToString"))
 final case class LiftedTypesafeConfig private[LiftedTypesafeConfig] (configAndName: (Config, String)) extends AnyVal {
 
   private def lift[A](name: String, f: String => A)(implicit ev: reflect.Manifest[A]): BootupErrors[A] = try {
