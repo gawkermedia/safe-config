@@ -1,11 +1,9 @@
-import scalariform.formatter.preferences._
-
 name := "safe-config"
 organization := "com.kinja"
 version := "1.1.6"
 
-scalaVersion := "2.13.11"
-crossScalaVersions := Seq(scalaVersion.value, "2.12.18", "2.11.12")
+crossScalaVersions := Seq("2.13.12")
+scalaVersion := crossScalaVersions.value.head
 
 scalacOptions ++= Seq(
   "-unchecked",                        // Show details of unchecked warnings.
@@ -62,14 +60,7 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     )
 })
 
-scalariformAutoformat := true
-scalariformPreferences := scalariformPreferences.value
-  .setPreference(AlignArguments, true)
-  .setPreference(AlignParameters, true)
-  .setPreference(AlignSingleLineCaseStatements, true)
-  .setPreference(DoubleIndentConstructorArguments, true)
-  .setPreference(DanglingCloseParenthesis, Preserve)
-  .setPreference(SpaceBeforeColon, true)
+scalafmtOnCompile := true
 
 wartremoverErrors ++= Warts.allBut(Wart.Equals, Wart.Overloading, Wart.ListAppend, Wart.IterableOps)
 

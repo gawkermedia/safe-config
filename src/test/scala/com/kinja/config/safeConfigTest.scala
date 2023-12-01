@@ -4,10 +4,12 @@ import org.scalatest._
 
 import scala.concurrent.duration.Duration
 
-@SuppressWarnings(Array(
-  "org.wartremover.warts.NonUnitStatements",
-  "org.wartremover.warts.Throw"
-))
+@SuppressWarnings(
+  Array(
+    "org.wartremover.warts.NonUnitStatements",
+    "org.wartremover.warts.Throw"
+  )
+)
 class safeConfigTest extends FlatSpec with Matchers {
   "safeConfig" should "handle getBoolean" in {
     TestConfig.getBoolean1 should be(true)
@@ -92,33 +94,39 @@ class safeConfigTest extends FlatSpec with Matchers {
   }
 
   it should "handle missing values" in {
-    val errorMessage = try {
-      @safeConfig(testConf)
-      object MissingConf {
-        val foo : BootupErrors[String] = getString("does-not-exist")
-        val bar : BootupErrors[Int] = getInt("also-does-not-exist")
+    val errorMessage =
+      try {
+        @safeConfig(testConf)
+        object MissingConf {
+          val foo: BootupErrors[String] = getString("does-not-exist")
+          val bar: BootupErrors[Int] = getInt("also-does-not-exist")
+        }
+        MissingConf
+        ""
+      } catch {
+        case e: BootupConfigurationException => e.getMessage
       }
-      MissingConf
-      ""
-    } catch {
-      case e : BootupConfigurationException => e.getMessage
-    }
-    errorMessage should be("The following Bootup configuration errors were found: \n\tCould not find key `does-not-exist` in configuration `root`.\n\tCould not find key `also-does-not-exist` in configuration `root`.")
+    errorMessage should be(
+      "The following Bootup configuration errors were found: \n\tCould not find key `does-not-exist` in configuration `root`.\n\tCould not find key `also-does-not-exist` in configuration `root`."
+    )
   }
 
   it should "handle wrong types" in {
-    val errorMessage = try {
-      @safeConfig(testConf)
-      object WrongTypeConf {
-        val foo : BootupErrors[Int] = getInt("string")
-        val bar : BootupErrors[Duration] = getDuration("object-list")
+    val errorMessage =
+      try {
+        @safeConfig(testConf)
+        object WrongTypeConf {
+          val foo: BootupErrors[Int] = getInt("string")
+          val bar: BootupErrors[Duration] = getDuration("object-list")
+        }
+        WrongTypeConf
+        ""
+      } catch {
+        case e: BootupConfigurationException => e.getMessage
       }
-      WrongTypeConf
-      ""
-    } catch {
-      case e : BootupConfigurationException => e.getMessage
-    }
-    errorMessage should be("The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long.")
+    errorMessage should be(
+      "The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long."
+    )
   }
 
   it should "handle classes" in {
@@ -142,6 +150,8 @@ class safeConfigTest extends FlatSpec with Matchers {
   }
 
   it should "BootupErrors.sequence should work" in {
-    BootupErrors.sequence(List(BootupErrors(1), BootupErrors(2), BootupErrors(3))).toOption should be(Some(List(1, 2, 3)))
+    BootupErrors.sequence(List(BootupErrors(1), BootupErrors(2), BootupErrors(3))).toOption should be(
+      Some(List(1, 2, 3))
+    )
   }
 }
