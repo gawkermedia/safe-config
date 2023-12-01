@@ -1,6 +1,7 @@
 package com.kinja.config
 
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.Duration
 
@@ -10,7 +11,7 @@ import scala.concurrent.duration.Duration
     "org.wartremover.warts.Throw"
   )
 )
-class safeConfigTest extends FlatSpec with Matchers {
+class safeConfigTest extends AnyFlatSpec with Matchers {
   "safeConfig" should "handle getBoolean" in {
     TestConfig.getBoolean1 should be(true)
     TestConfig.getBoolean2 should be(true)
@@ -118,6 +119,7 @@ class safeConfigTest extends FlatSpec with Matchers {
         object WrongTypeConf {
           val foo: BootupErrors[Int] = getInt("string")
           val bar: BootupErrors[Duration] = getDuration("object-list")
+          val baz: BootupErrors[List[Int]] = getIntList("string")
         }
         WrongTypeConf
         ""
@@ -125,7 +127,10 @@ class safeConfigTest extends FlatSpec with Matchers {
         case e: BootupConfigurationException => e.getMessage
       }
     errorMessage should be(
-      "The following Bootup configuration errors were found: \n\tIncorrect type for `string` in configuration `root`. Expected Int.\n\tIncorrect type for `object-list` in configuration `root`. Expected Long."
+      "The following Bootup configuration errors were found: \n\t" +
+        "Incorrect type for `string` in configuration `root`. Expected Int.\n\t" +
+        "Incorrect type for `object-list` in configuration `root`. Expected Long.\n\t" +
+        "Incorrect type for `string` in configuration `root`. Expected java.util.List[java.lang.Integer]."
     )
   }
 
