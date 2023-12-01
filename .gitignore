@@ -1,5 +1,6 @@
 *.class
 *.log
+.DS_Store
 
 # sbt specific
 .cache
@@ -18,3 +19,7 @@ project/plugins/project/
 .worksheet
 .bloop
 .metals
+metals.sbt
+
+# IDE specific
+.vscode
