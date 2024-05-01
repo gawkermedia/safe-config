@@ -1,6 +1,6 @@
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.1.5")
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.1.6")
 
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.5")
 

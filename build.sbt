@@ -1,8 +1,8 @@
 name := "safe-config"
 organization := "com.kinja"
-version := "1.1.6"
+version := "2.0.0"
 
-crossScalaVersions := Seq("2.13.12")
+crossScalaVersions := Seq("2.13.13")
 scalaVersion := crossScalaVersions.value.head
 
 scalacOptions ++= Seq(
@@ -31,34 +31,14 @@ scalacOptions ++= Seq(
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
   // "-Ywarn-unused:params",              // Warn if a value parameter is unused.
   // "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-  "-Ywarn-value-discard"               // Prevent accidental discarding of results in unit functions.
+  "-Ywarn-value-discard",              // Prevent accidental discarding of results in unit functions.
+  "-Ymacro-annotations",
+  "-Xlint:constant",                  // Evaluation of a constant arithmetic expression results in an error.
+  "-Ywarn-unused:locals",             // Warn if a local definition is unused.
+  "-Ywarn-unused:implicits",          // Warn if an implicit parameter is unused.
+  "-Ywarn-unused:privates",           // Warn if a private member is unused.
+  "-Ywarn-extra-implicit"             // Warn when more than one implicit parameter section is defined.
 )
-
-scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, scalaMajor)) if scalaMajor >= 13 =>
-    Seq(
-      "-Ymacro-annotations",
-      "-Xlint:constant",                  // Evaluation of a constant arithmetic expression results in an error.
-      "-Ywarn-unused:locals",             // Warn if a local definition is unused.
-      "-Ywarn-unused:implicits",          // Warn if an implicit parameter is unused.
-      "-Ywarn-unused:privates",           // Warn if a private member is unused.
-      "-Ywarn-extra-implicit"             // Warn when more than one implicit parameter section is defined.
-    )
-  case Some((2, scalaMajor)) if scalaMajor >= 12 =>
-    Seq(
-      "-Xlint:constant",                  // Evaluation of a constant arithmetic expression results in an error.
-      "-Ywarn-unused:locals",             // Warn if a local definition is unused.
-      "-Ywarn-unused:implicits",          // Warn if an implicit parameter is unused.
-      "-Ywarn-unused:privates",           // Warn if a private member is unused.
-      "-Ywarn-extra-implicit"             // Warn when more than one implicit parameter section is defined.
-    )
-  case _ =>
-    Seq(
-      "-Xfatal-warnings",  // All warnings should result in a compiliation failure.
-      "-Yno-adapted-args", // No longer needed in Scala 2.13
-      "-Xfuture"           // Deprecated in Scala 2.13
-    )
-})
 
 scalafmtOnCompile := true
 
@@ -69,16 +49,6 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value,
   "org.scalatest" %% "scalatest" % "3.2.17" % Test
 )
-
-libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, scalaMajor)) if scalaMajor >= 13 =>
-    Seq()
-  case _ =>
-    Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1"
-    )
-})
 
 lazy val root = Project("safe-config", file("."))
 
